@@ -1,0 +1,139 @@
+from fastapi import FastAPI, HTTPException
+from fastapi.staticfiles import StaticFiles
+from pydantic import BaseModel
+import sqlite3
+import os
+from typing import Optional
+from argon2 import PasswordHasher
+from argon2.exceptions import VerifyMismatchError
+
+app = FastAPI()
+
+app.mount("/app", StaticFiles(directory="pwa", html=True), name="pwa")
+
+DB_PATH = "data.db"
+
+
+class LoginRequest(BaseModel):
+    username: str
+    password: str
+
+
+class CreateUserRequest(BaseModel):
+    username: str
+    firstname: Optional[str] = None
+    lastname: Optional[str] = None
+    password: str
+    role: str
+
+
+# argon2 password hasher
+ph = PasswordHasher()
+
+def hash_password(password: str) -> str:
+    return ph.hash(password)
+
+
+def verify_password(password: str, hashed: str) -> bool:
+    try:
+        return ph.verify(hashed, password)
+    except VerifyMismatchError:
+        return False
+    except Exception:
+        return False
+
+
+def get_db():
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    return conn
+
+
+def init_db():
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute(
+        """
+        CREATE TABLE IF NOT EXISTS roles (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT UNIQUE NOT NULL
+        )
+        """
+    )
+    cursor.execute(
+        """
+        CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT UNIQUE NOT NULL,
+            firstname TEXT,
+            lastname TEXT,
+            password TEXT NOT NULL,
+            role INTEGER,
+            FOREIGN KEY(role) REFERENCES roles(id)
+        )
+        """
+    )
+    roles = ["student", "teacher", "parent", "administration"]
+    for r in roles:
+        cursor.execute("INSERT OR IGNORE INTO roles(name) VALUES(?)", (r,))
+    conn.commit()
+    conn.close()
+
+
+init_db()
+
+
+@app.post("/login")
+async def login(payload: LoginRequest):
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute(
+        "SELECT u.id, u.username, u.firstname, u.lastname, u.password, r.name as role "
+        "FROM users u LEFT JOIN roles r ON u.role = r.id WHERE u.username = ?",
+        (payload.username,),
+    )
+    row = cursor.fetchone()
+    conn.close()
+    if not row:
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+    if not verify_password(payload.password, row["password"]):
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+    return {
+        "id": row["id"],
+        "username": row["username"],
+        "firstname": row["firstname"],
+        "lastname": row["lastname"],
+        "role": row["role"],
+    }
+
+
+@app.post("/create_user")
+async def create_user(payload: CreateUserRequest):
+    conn = get_db()
+    cursor = conn.cursor()
+    # find role id
+    cursor.execute("SELECT id FROM roles WHERE name = ?", (payload.role,))
+    role_row = cursor.fetchone()
+    if not role_row:
+        conn.close()
+        raise HTTPException(status_code=400, detail="Invalid role")
+    role_id = role_row["id"]
+    # hash password
+    hashed = hash_password(payload.password)
+    try:
+        cursor.execute(
+            "INSERT INTO users(username, firstname, lastname, password, role) VALUES(?,?,?,?,?)",
+            (payload.username, payload.firstname, payload.lastname, hashed, role_id),
+        )
+        conn.commit()
+        user_id = cursor.lastrowid
+    except sqlite3.IntegrityError:
+        conn.close()
+        raise HTTPException(status_code=400, detail="Username already exists")
+    conn.close()
+    return {"id": user_id, "username": payload.username, "role": payload.role}
+
+
+@app.get("/")
+async def root():
+    raise HTTPException(status_code=404, detail="Not Found")
