@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 import sqlite3
@@ -7,12 +7,15 @@ from typing import Optional
 from argon2 import PasswordHasher
 from argon2.exceptions import VerifyMismatchError
 
+from starlette.middleware.sessions import SessionMiddleware
+
+
 app = FastAPI()
 
+app.add_middleware(SessionMiddleware, secret_key="3PlRPaH7vpCUmWCy9S9SkXy2ia3ezj5dLCCQb5zhzQy5cvcM6Z")
 app.mount("/app", StaticFiles(directory="pwa", html=True), name="pwa")
 
 DB_PATH = "data.db"
-
 
 class LoginRequest(BaseModel):
     username: str
@@ -32,7 +35,6 @@ ph = PasswordHasher()
 
 def hash_password(password: str) -> str:
     return ph.hash(password)
-
 
 def verify_password(password: str, hashed: str) -> bool:
     try:
@@ -82,9 +84,26 @@ def init_db():
 
 init_db()
 
+# DEPENDENCIES
+async def LoggedIn(request: Request):
+    if "user_id" not in request.session:
+        raise HTTPException(status_code=401, detail="Login required")
+    return request.session
+
+def require_role(*allowed_roles: int):
+    """Factory: ANY der allowed_roles → OK!"""
+    async def _role(request: Request):
+        session_data = await LoggedIn(request)
+        user_role = session_data["role"]
+        
+        if user_role not in allowed_roles:
+            raise HTTPException(403, f"Erlaubte Rollen: {allowed_roles}")
+        return session_data
+    return _role
+
 
 @app.post("/login")
-async def login(payload: LoginRequest):
+async def login(payload: LoginRequest, request: Request):
     conn = get_db()
     cursor = conn.cursor()
     cursor.execute(
@@ -94,10 +113,17 @@ async def login(payload: LoginRequest):
     )
     row = cursor.fetchone()
     conn.close()
-    if not row:
+    if not row or not verify_password(payload.password, row["password"]):
         raise HTTPException(status_code=401, detail="Invalid credentials")
     if not verify_password(payload.password, row["password"]):
         raise HTTPException(status_code=401, detail="Invalid credentials")
+    
+    request.session["user_id"] = row["id"]
+    request.session["username"] = row["username"]
+    request.session["firstname"] = row["firstname"]
+    request.session["lastname"] = row["lastname"]
+    request.session["role"] = row["role"]
+
     return {
         "id": row["id"],
         "username": row["username"],
@@ -106,6 +132,14 @@ async def login(payload: LoginRequest):
         "role": row["role"],
     }
 
+@app.get("/profile")
+async def profile(session_data: dict = Depends(LoggedIn)):
+    return session_data
+
+@app.post("/logout")
+async def logout(request: Request):
+    request.session.clear()
+    return {"success": True}
 
 @app.post("/create_user")
 async def create_user(payload: CreateUserRequest):
