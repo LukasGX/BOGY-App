@@ -19,7 +19,8 @@
 	box-sizing: border-box;
 }
 
-button {
+button,
+input[type="submit"] {
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
@@ -37,8 +38,19 @@ button {
 	transition: 250ms ease;
 }
 
-button:active {
+button:active,
+input[type="submit"]:active {
 	background: #007bd9;
+}
+
+input[type="text"],
+input[type="password"] {
+	width: 100%;
+	padding: 0.5rem;
+	margin: 0.5rem 0 1rem 0;
+	border: 1px solid #ccc;
+	border-radius: 4px;
+	font-size: 1rem;
 }
 
 /* HEADER */
@@ -108,4 +120,13 @@ main {
 	justify-content: center;
 	font-weight: bold;
 	z-index: 100;
+}
+
+.app-wrapper {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 0.5rem;
 }

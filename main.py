@@ -1,4 +1,5 @@
-from fastapi import Depends, FastAPI, HTTPException, Request
+from fastapi import Depends, FastAPI, HTTPException, Request, Form
+from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 import sqlite3
@@ -12,15 +13,10 @@ from starlette.middleware.sessions import SessionMiddleware
 
 app = FastAPI()
 
-app.add_middleware(SessionMiddleware, secret_key="3PlRPaH7vpCUmWCy9S9SkXy2ia3ezj5dLCCQb5zhzQy5cvcM6Z")
+app.add_middleware(SessionMiddleware, secret_key="3PlRPaH7vpCUmWCy9S9SkXy2ia3ezj5dLCCQb5zhzQy5cvcM6Z", same_site="lax")
 app.mount("/app", StaticFiles(directory="pwa", html=True), name="pwa")
 
 DB_PATH = "data.db"
-
-class LoginRequest(BaseModel):
-    username: str
-    password: str
-
 
 class CreateUserRequest(BaseModel):
     username: str
@@ -91,46 +87,42 @@ async def LoggedIn(request: Request):
     return request.session
 
 def require_role(*allowed_roles: int):
-    """Factory: ANY der allowed_roles → OK!"""
     async def _role(request: Request):
         session_data = await LoggedIn(request)
         user_role = session_data["role"]
         
         if user_role not in allowed_roles:
-            raise HTTPException(403, f"Erlaubte Rollen: {allowed_roles}")
+            raise HTTPException(403, f"Allowed roles: {allowed_roles}")
         return session_data
     return _role
 
+# ROOT
+@app.get("/")
+async def root():
+    raise HTTPException(status_code=404, detail="Not Found")
 
+# USERS
 @app.post("/login")
-async def login(payload: LoginRequest, request: Request):
+async def login(request: Request, username: str = Form(...), pw: str = Form(...)):
     conn = get_db()
     cursor = conn.cursor()
     cursor.execute(
         "SELECT u.id, u.username, u.firstname, u.lastname, u.password, r.name as role "
         "FROM users u LEFT JOIN roles r ON u.role = r.id WHERE u.username = ?",
-        (payload.username,),
+        (username,),
     )
     row = cursor.fetchone()
     conn.close()
-    if not row or not verify_password(payload.password, row["password"]):
-        raise HTTPException(status_code=401, detail="Invalid credentials")
-    if not verify_password(payload.password, row["password"]):
-        raise HTTPException(status_code=401, detail="Invalid credentials")
-    
+    if not row or not verify_password(pw, row["password"]):
+        return RedirectResponse(url="/app/wrong_credentials.html", status_code=302)
+
     request.session["user_id"] = row["id"]
     request.session["username"] = row["username"]
     request.session["firstname"] = row["firstname"]
     request.session["lastname"] = row["lastname"]
     request.session["role"] = row["role"]
 
-    return {
-        "id": row["id"],
-        "username": row["username"],
-        "firstname": row["firstname"],
-        "lastname": row["lastname"],
-        "role": row["role"],
-    }
+    return RedirectResponse(url="/app/index.html", status_code=302)
 
 @app.get("/profile")
 async def profile(session_data: dict = Depends(LoggedIn)):
@@ -167,7 +159,7 @@ async def create_user(payload: CreateUserRequest):
     conn.close()
     return {"id": user_id, "username": payload.username, "role": payload.role}
 
-
-@app.get("/")
-async def root():
-    raise HTTPException(status_code=404, detail="Not Found")
+# PAGES
+@app.get("/home")
+async def home(session_data: dict = Depends(LoggedIn)):
+    return {"message": f"Welcome to the home page, {session_data['username']}!"}
