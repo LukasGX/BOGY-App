@@ -12,20 +12,177 @@
 			<img src="resources/logo.png" alt="BOGY-Logo" class="logo" />
 			<span class="heading">Nachhilfe</span>
 		</header>
+
 		<main id="page-firstopen">
 			<h1>Nachhilfe-Partner finden</h1>
-			<button>Ich brauche Hilfe</button>
-			<button>Ich möchte helfen</button>
+			<button id="btn-register-student">Ich brauche Hilfe</button>
+			<button id="btn-register-teacher">Ich möchte helfen</button>
 		</main>
 
 		<main id="page-register-student">
-			<h1>Jetzt anmelden</h1>
+			<h1>
+				Jetzt anmelden
+				<span class="in-heading">Ich brauche Hilfe</span>
+			</h1>
+
+			<form action="/register-tutoring">
+				<input type="hidden" name="type" value="student" />
+
+				<input type="submit" value="Anmelden" />
+			</form>
 		</main>
 
 		<main id="page-register-teacher">
-			<h1>Jetzt anmelden</h1>
+			<h1>
+				Jetzt anmelden
+				<span class="in-heading">Ich möchte helfen</span>
+			</h1>
+
+			<form action="/register-tutoring">
+				<input type="hidden" name="type" value="teacher" />
+
+				<h3>Erstelle dein Profil</h3>
+
+				<div class="subject-group">
+					<h3>Sprachen</h3>
+					<label>
+						<input type="checkbox" name="subject" value="german" />
+						Deutsch
+					</label>
+					<label>
+						<input type="checkbox" name="subject" value="english" />
+						Englisch
+					</label>
+					<label>
+						<input type="checkbox" name="subject" value="french" />
+						Französisch
+					</label>
+					<label>
+						<input type="checkbox" name="subject" value="latin" />
+						Latein
+					</label>
+					<label>
+						<input type="checkbox" name="subject" value="spanish" />
+						Spanisch
+					</label>
+					<label>
+						<input type="checkbox" name="subject" value="italian" />
+						Italienisch
+					</label>
+				</div>
+
+				<div class="subject-group">
+					<h3>Mathematik & Naturwissenschaften</h3>
+					<label>
+						<input type="checkbox" name="subject" value="maths" />
+						Mathematik
+					</label>
+					<label>
+						<input type="checkbox" name="subject" value="physics" />
+						Physik
+					</label>
+					<label>
+						<input
+							type="checkbox"
+							name="subject"
+							value="chemistry" />
+						Chemie
+					</label>
+					<label>
+						<input type="checkbox" name="subject" value="biology" />
+						Biologie
+					</label>
+					<label>
+						<input type="checkbox" name="subject" value="cs" />
+						Informatik
+					</label>
+					<label>
+						<input type="checkbox" name="subject" value="nut" />
+						Natur und Technik (NuT)
+					</label>
+				</div>
+
+				<div class="subject-group">
+					<h3>Gesellschaft & Wirtschaft</h3>
+					<label>
+						<input type="checkbox" name="subject" value="history" />
+						Geschichte
+					</label>
+					<label>
+						<input
+							type="checkbox"
+							name="subject"
+							value="geography" />
+						Geographie
+					</label>
+					<label>
+						<input
+							type="checkbox"
+							name="subject"
+							value="economics" />
+						Wirtschaft und Recht
+					</label>
+					<label>
+						<input
+							type="checkbox"
+							name="subject"
+							value="politics" />
+						Politik und Gesellschaft
+					</label>
+					<label>
+						<input
+							type="checkbox"
+							name="subject"
+							value="business-cs" />
+						Wirtschaftsinformatik
+					</label>
+				</div>
+
+				<div class="subject-group">
+					<h3>Kunst, Musik & Sport</h3>
+					<label>
+						<input type="checkbox" name="subject" value="art" />
+						Kunst
+					</label>
+					<label
+						><input type="checkbox" name="subject" value="music" />
+						Musik</label
+					>
+					<label
+						><input type="checkbox" name="subject" value="pe" />
+						Sport</label
+					>
+				</div>
+
+				<div class="subject-group">
+					<h3>Religion & Ethik</h3>
+					<label>
+						<input
+							type="checkbox"
+							name="subject"
+							value="catholic" />
+						Katholische Religionslehre
+					</label>
+					<label>
+						<input
+							type="checkbox"
+							name="subject"
+							value="evangelic" />
+						Evangelische Religionslehre
+					</label>
+					<label>
+						<input type="checkbox" name="subject" value="ethics" />
+						Ethik
+					</label>
+				</div>
+
+				<input type="submit" value="Anmelden" />
+			</form>
 		</main>
 
+		<main id="page-standard">DRIN</main>
+
+		<script src="js/methods.js"></script>
 		<script src="js/tutoring.js"></script>
 	</body>
 </html>

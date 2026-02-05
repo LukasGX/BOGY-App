@@ -53,13 +53,80 @@ input[type="password"] {
 	font-size: 1rem;
 }
 
+input[type="checkbox"] {
+	font-size: 1rem;
+}
+
+.subject-group {
+	margin-bottom: 1.5rem;
+	background: #f9f9f9;
+	border: 1px solid #ddd;
+	border-radius: 6px;
+	padding: 1rem;
+}
+
+.subject-group h3 {
+	margin-top: 0;
+	color: #005594;
+	font-size: 1.1rem;
+	border-bottom: 1px solid #ddd;
+	padding-bottom: 0.2rem;
+}
+
+.subject-group label {
+	display: flex;
+	align-items: center;
+	margin: 0.4rem 0;
+	cursor: pointer;
+	transition: 0.15s ease;
+	padding: 0.3rem 0.5rem;
+	border-radius: 4px;
+}
+
+.subject-group label:hover {
+	background: #eef6ff;
+}
+
+input[type="checkbox"] {
+	appearance: none;
+	width: 1.1rem;
+	height: 1.1rem;
+	border: 2px solid #aaa;
+	border-radius: 4px;
+	margin-right: 0.6rem;
+	position: relative;
+	transition: all 0.2s ease;
+}
+
+input[type="checkbox"]:checked {
+	background-color: #005594;
+	border-color: #005594;
+}
+
+input[type="checkbox"]:checked::after {
+	content: "✓";
+	position: absolute;
+	top: -2px;
+	left: 1px;
+	color: white;
+	font-size: 0.9rem;
+}
+
+.in-heading {
+	display: block;
+	font-size: 0.8rem;
+	color: #808080;
+	margin-top: 0.2rem;
+	margin-left: 0.3rem;
+}
+
 /* HEADER */
 header {
 	display: flex;
 	justify-content: center;
 	gap: 1rem;
 	padding-top: 0.5rem;
-	margin-bottom: 0.5rem;
+	margin-bottom: 1rem;
 }
 
 .heading {
@@ -79,7 +146,7 @@ main {
 
 #apps {
 	display: grid;
-	gap: 0.5rem;
+	gap: 1rem;
 	grid-template-columns: 1fr 1fr;
 }
 
@@ -90,13 +157,17 @@ main {
 	text-align: center;
 	border: 1px solid #ccc;
 	border-radius: 8px;
-	padding: 0.7rem;
+	padding: 0.4rem;
 	background: #005594;
 	color: white;
 	position: relative;
 	overflow: visible;
 	touch-action: manipulation;
 	user-select: none;
+
+	height: 100%;
+	aspect-ratio: 1 / 1;
+	font-size: 1.8rem;
 
 	transition: 250ms ease;
 }
