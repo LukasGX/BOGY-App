@@ -5,44 +5,32 @@ async function main() {
 
 	// get main elements
 	const firstOpenMain = document.getElementById("page-firstopen");
-	const registerStudentMain = document.getElementById(
-		"page-register-student"
-	);
-	const registerTeacherMain = document.getElementById(
-		"page-register-teacher"
-	);
+	const registerMain = document.getElementById("page-register");
 	const standardMain = document.getElementById("page-standard");
 
-	if (firstOpenMain && profile.tutoring == true)
-		firstOpenMain.style.display = "none";
-	if (firstOpenMain && profile.tutoring == false)
-		firstOpenMain.style.display = "block";
-	if (registerStudentMain) registerStudentMain.style.display = "none";
-	if (registerTeacherMain) registerTeacherMain.style.display = "none";
-	if (standardMain && profile.tutoring == true)
-		standardMain.style.display = "block";
-	if (standardMain && profile.tutoring == false)
-		standardMain.style.display = "block";
+	const RGCS = document.getElementById("section-register-callout");
+	const EPC = document.getElementById("section-edit-profile-callout");
 
-	// get btns
-	const btnRegisterStudent = document.getElementById("btn-register-student");
-	const btnRegisterTeacher = document.getElementById("btn-register-teacher");
-
-	if (btnRegisterStudent) {
-		btnRegisterStudent.addEventListener("click", () => {
-			if (firstOpenMain) firstOpenMain.style.display = "none";
-			if (registerStudentMain)
-				registerStudentMain.style.display = "block";
-			if (registerTeacherMain) registerTeacherMain.style.display = "none";
-		});
+	if (profile.tutoring == true) {
+		if (RGCS) RGCS.style.display = "none";
+		if (EPC) EPC.style.display = "block";
+	} else {
+		if (RGCS) RGCS.style.display = "block";
+		if (EPC) EPC.style.display = "none";
 	}
 
-	if (btnRegisterTeacher) {
-		btnRegisterTeacher.addEventListener("click", () => {
+	if (firstOpenMain) firstOpenMain.style.display = "block";
+	if (registerMain) registerMain.style.display = "none";
+	if (standardMain) standardMain.style.display = "none";
+
+	// get btns
+	const btnRegister = document.getElementById("btn-register");
+
+	if (btnRegister) {
+		btnRegister.addEventListener("click", () => {
 			if (firstOpenMain) firstOpenMain.style.display = "none";
-			if (registerStudentMain) registerStudentMain.style.display = "none";
-			if (registerTeacherMain)
-				registerTeacherMain.style.display = "block";
+			if (registerMain) registerMain.style.display = "block";
+			if (standardMain) standardMain.style.display = "none";
 		});
 	}
 }

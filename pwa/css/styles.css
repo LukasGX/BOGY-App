@@ -120,6 +120,15 @@ input[type="checkbox"]:checked::after {
 	margin-left: 0.3rem;
 }
 
+.s-link {
+	color: #808080;
+}
+
+.mid {
+	display: block;
+	text-align: center;
+}
+
 /* HEADER */
 header {
 	display: flex;
