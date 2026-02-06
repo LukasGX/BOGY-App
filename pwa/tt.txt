@@ -1,0 +1,132 @@
+<div class="subject-group">
+					<h3>Sprachen</h3>
+					<label>
+						<input type="checkbox" name="subject" value="german" />
+						Deutsch
+					</label>
+					<label>
+						<input type="checkbox" name="subject" value="english" />
+						Englisch
+					</label>
+					<label>
+						<input type="checkbox" name="subject" value="french" />
+						Französisch
+					</label>
+					<label>
+						<input type="checkbox" name="subject" value="latin" />
+						Latein
+					</label>
+					<label>
+						<input type="checkbox" name="subject" value="spanish" />
+						Spanisch
+					</label>
+					<label>
+						<input type="checkbox" name="subject" value="italian" />
+						Italienisch
+					</label>
+				</div>
+
+				<div class="subject-group">
+					<h3>Mathematik & Naturwissenschaften</h3>
+					<label>
+						<input type="checkbox" name="subject" value="maths" />
+						Mathematik
+					</label>
+					<label>
+						<input type="checkbox" name="subject" value="physics" />
+						Physik
+					</label>
+					<label>
+						<input
+							type="checkbox"
+							name="subject"
+							value="chemistry" />
+						Chemie
+					</label>
+					<label>
+						<input type="checkbox" name="subject" value="biology" />
+						Biologie
+					</label>
+					<label>
+						<input type="checkbox" name="subject" value="cs" />
+						Informatik
+					</label>
+					<label>
+						<input type="checkbox" name="subject" value="nut" />
+						Natur und Technik (NuT)
+					</label>
+				</div>
+
+				<div class="subject-group">
+					<h3>Gesellschaft & Wirtschaft</h3>
+					<label>
+						<input type="checkbox" name="subject" value="history" />
+						Geschichte
+					</label>
+					<label>
+						<input
+							type="checkbox"
+							name="subject"
+							value="geography" />
+						Geographie
+					</label>
+					<label>
+						<input
+							type="checkbox"
+							name="subject"
+							value="economics" />
+						Wirtschaft und Recht
+					</label>
+					<label>
+						<input
+							type="checkbox"
+							name="subject"
+							value="politics" />
+						Politik und Gesellschaft
+					</label>
+					<label>
+						<input
+							type="checkbox"
+							name="subject"
+							value="business-cs" />
+						Wirtschaftsinformatik
+					</label>
+				</div>
+
+				<div class="subject-group">
+					<h3>Kunst, Musik & Sport</h3>
+					<label>
+						<input type="checkbox" name="subject" value="art" />
+						Kunst
+					</label>
+					<label
+						><input type="checkbox" name="subject" value="music" />
+						Musik</label
+					>
+					<label
+						><input type="checkbox" name="subject" value="pe" />
+						Sport</label
+					>
+				</div>
+
+				<div class="subject-group">
+					<h3>Religion & Ethik</h3>
+					<label>
+						<input
+							type="checkbox"
+							name="subject"
+							value="catholic" />
+						Katholische Religionslehre
+					</label>
+					<label>
+						<input
+							type="checkbox"
+							name="subject"
+							value="evangelic" />
+						Evangelische Religionslehre
+					</label>
+					<label>
+						<input type="checkbox" name="subject" value="ethics" />
+						Ethik
+					</label>
+				</div>
