@@ -65,14 +65,6 @@ def init_db():
     )
     cursor.execute(
         """
-        CREATE TABLE IF NOT EXISTS tutoring_roles (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT UNIQUE NOT NULL
-        )
-        """
-    )
-    cursor.execute(
-        """
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             username TEXT UNIQUE NOT NULL,
@@ -85,7 +77,6 @@ def init_db():
         )
         """
     )
-    
     cursor.execute(
         """
         CREATE TABLE IF NOT EXISTS classes (
@@ -94,7 +85,6 @@ def init_db():
         )
         """
     )
-    # subjects table (from tutoring.html) and tutoring table
     cursor.execute(
         """
         CREATE TABLE IF NOT EXISTS subjects (
@@ -103,24 +93,16 @@ def init_db():
         )
         """
     )
-
     cursor.execute(
         """
         CREATE TABLE IF NOT EXISTS tutoring (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             user INTEGER NOT NULL,
-            role INTEGER NOT NULL,
             subjects TEXT,
-            FOREIGN KEY(user) REFERENCES users(id),
-            FOREIGN KEY(role) REFERENCES tutoring_roles(id)
+            FOREIGN KEY(user) REFERENCES users(id)
         )
         """
     )
-
-    # seed tutoring_roles
-    tutoring_roles = ["student", "teacher"]
-    for tr in tutoring_roles:
-        cursor.execute("INSERT OR IGNORE INTO tutoring_roles(name) VALUES(?)", (tr,))
 
     # seed subjects
     subjects = [
@@ -151,10 +133,6 @@ def init_db():
     for s in subjects:
         cursor.execute("INSERT OR IGNORE INTO subjects(name) VALUES(?)", (s,))
     
-    cursor.execute("PRAGMA table_info(users)")
-    cols = [c[1] for c in cursor.fetchall()]
-    if "class" not in cols:
-        cursor.execute("ALTER TABLE users ADD COLUMN class INTEGER")
     roles = ["student", "teacher", "parent", "administration"]
     for r in roles:
         cursor.execute("INSERT OR IGNORE INTO roles(name) VALUES(?)", (r,))
@@ -227,13 +205,11 @@ async def profile(session_data: dict = Depends(LoggedIn)):
             WHEN t.user IS NULL THEN 0
             ELSE 1
         END AS tutoring,
-        tr.name AS tutoring_role,
         t.subjects AS tutoring_subjects
         FROM users u
         LEFT JOIN roles r ON u.role = r.id
         LEFT JOIN classes c ON u.class = c.id
         LEFT JOIN tutoring t ON u.id = t.user
-        LEFT JOIN tutoring_roles tr ON t.role = tr.id
         WHERE u.id = ?""",
         (session_data["user_id"],),
     )
@@ -306,21 +282,10 @@ async def create_class(payload: CreateClassRequest):
 @app.get("/register-tutoring")
 async def register_tutoring(request: Request, session_data: dict = Depends(LoggedIn)):
     q = request.query_params
-    tut_type = q.get("type")
-    if not tut_type:
-        raise HTTPException(status_code=400, detail="Missing type parameter")
 
     conn = get_db()
     cursor = conn.cursor()
-    # lookup tutoring role id
-    cursor.execute("SELECT id FROM tutoring_roles WHERE name = ?", (tut_type,))
-    tr = cursor.fetchone()
-    if not tr:
-        conn.close()
-        raise HTTPException(status_code=400, detail="Invalid tutoring role")
-    tr_id = tr["id"]
 
-    # gather subject ids (multiple `subject` params are allowed)
     subject_names = request.query_params.getlist("subject")
     subject_ids = []
     for name in subject_names:
@@ -335,8 +300,8 @@ async def register_tutoring(request: Request, session_data: dict = Depends(Logge
 
     try:
         cursor.execute(
-            "INSERT INTO tutoring(user, role, subjects) VALUES(?,?,?)",
-            (session_data["user_id"], tr_id, subjects_field),
+            "INSERT INTO tutoring(user, subjects) VALUES(?,?)",
+            (session_data["user_id"], subjects_field),
         )
         conn.commit()
         tutoring_id = cursor.lastrowid
@@ -345,7 +310,7 @@ async def register_tutoring(request: Request, session_data: dict = Depends(Logge
         raise HTTPException(status_code=400, detail="Could not create tutoring entry")
     conn.close()
 
-    return {"id": tutoring_id, "user": session_data["user_id"], "role": tr_id, "subjects": subject_ids}
+    return {"id": tutoring_id, "user": session_data["user_id"], "subjects": subject_ids}
 
 # PAGES
 @app.get("/home")
