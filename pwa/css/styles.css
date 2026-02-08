@@ -129,6 +129,47 @@ input[type="checkbox"]:checked::after {
 	text-align: center;
 }
 
+/* TUTORING SEARCH */
+.search-results {
+	margin-top: 1rem;
+	margin-bottom: 1rem;
+}
+
+.search-result {
+	position: relative;
+	border: 1px solid #ccc;
+	border-radius: 6px;
+	padding: 0.8rem 1rem;
+	background: #f9f9f9;
+}
+
+.name {
+	font-weight: 600;
+	font-size: 1.1rem;
+	display: block;
+}
+
+.infos {
+	font-size: 1rem;
+}
+
+.contact {
+	background-color: #005594;
+	color: white;
+	border: none;
+	padding: 0.5rem 1rem;
+	border-radius: 4px;
+	position: absolute;
+	top: 50%;
+	right: 1rem;
+	transform: translateY(-50%);
+}
+
+.contact img {
+	width: 1.5rem;
+	height: 1.5rem;
+}
+
 /* HEADER */
 header {
 	display: flex;

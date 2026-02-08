@@ -312,6 +312,93 @@ async def register_tutoring(request: Request, session_data: dict = Depends(Logge
 
     return {"id": tutoring_id, "user": session_data["user_id"], "subjects": subject_ids}
 
+@app.get("/search-tutors")
+async def search_tutors(request: Request):
+    # collect requested subject names from query params
+    subject_names = request.query_params.getlist("subject")
+    if not subject_names:
+        return {"results": [], "count": 0}
+
+    conn = get_db()
+    cursor = conn.cursor()
+
+    # resolve provided subject names to ids
+    placeholders = ",".join("?" for _ in subject_names)
+    cursor.execute(f"SELECT id, name FROM subjects WHERE name IN ({placeholders})", tuple(subject_names))
+    found = cursor.fetchall()
+    if not found:
+        conn.close()
+        return {"results": [], "count": 0}
+
+    searched_ids = {str(r["id"]) for r in found}
+
+    # build id->name map for all subjects
+    cursor.execute("SELECT id, name FROM subjects")
+    all_subs = cursor.fetchall()
+    id_to_name = {str(r["id"]): r["name"] for r in all_subs}
+
+    # fetch tutoring entries joined with user info
+    cursor.execute(
+        "SELECT t.id as tutoring_id, t.user as user_id, t.subjects, u.username, u.firstname, u.lastname, r.name as role, c.name as class "
+        "FROM tutoring t JOIN users u ON t.user = u.id LEFT JOIN roles r ON u.role = r.id LEFT JOIN classes c ON u.class = c.id"
+    )
+
+    results = []
+    for row in cursor.fetchall():
+        subjects_field = row["subjects"]
+        if not subjects_field:
+            continue
+        subject_ids = [s for s in subjects_field.split(",") if s]
+
+        # match if any selected subject id is present
+        if not (set(subject_ids) & searched_ids):
+            continue
+
+        subject_labels = {
+            "german": "Deutsch",
+            "english": "Englisch",
+            "french": "Französisch",
+            "latin": "Latein",
+            "spanish": "Spanisch",
+            "italian": "Italienisch",
+            "maths": "Mathematik",
+            "physics": "Physik",
+            "chemistry": "Chemie",
+            "biology": "Biologie",
+            "cs": "Informatik",
+            "nut": "Natur und Technik (NuT)",
+            "history": "Geschichte",
+            "geography": "Geographie",
+            "economics": "Wirtschaft und Recht",
+            "politics": "Politik und Gesellschaft",
+            "business-cs": "Wirtschaftsinformatik",
+            "art": "Kunst",
+            "music": "Musik",
+            "pe": "Sport",
+            "catholic": "Katholische Religionslehre",
+            "evangelic": "Evangelische Religionslehre",
+            "ethics": "Ethik",
+        }
+
+        # include all users who created a tutoring entry; expose role as well
+        # translate stored subject ids -> code names -> German labels
+        results.append(
+            {
+                "user_id": row["user_id"],
+                "username": row["username"],
+                "firstname": row["firstname"],
+                "lastname": row["lastname"],
+                "class": row["class"],
+                "role": row["role"],
+                "subjects": [
+                    subject_labels.get(id_to_name.get(s, s), id_to_name.get(s, s))
+                    for s in subject_ids
+                ],
+            }
+        )
+
+    conn.close()
+    return {"results": results, "count": len(results)}
 # PAGES
 @app.get("/home")
 async def home(session_data: dict = Depends(LoggedIn)):
