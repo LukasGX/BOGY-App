@@ -218,7 +218,7 @@
 			</section>
 
 			<section id="section-edit-profile-callout">
-				<a href="#" id="btn-register" class="s-link mid">
+				<a href="#" id="btn-edit" class="s-link mid">
 					Nachhilfe-Partner-Profil bearbeiten
 				</a>
 			</section>
@@ -418,7 +418,197 @@
 			</form>
 		</main>
 
-		<main id="page-standard">DRIN</main>
+		<main id="page-edit">
+			<h1>Nachhilfe-Partner-Profil bearbeiten</h1>
+
+			<form action="/edit-tutor-profile">
+				<input type="hidden" name="type" value="teacher" />
+
+				<div class="subject-grid">
+					<!-- Languages -->
+					<details class="subject-group">
+						<summary>Sprachen</summary>
+						<label
+							><input
+								type="checkbox"
+								name="subject"
+								value="german" />
+							Deutsch</label
+						>
+						<label
+							><input
+								type="checkbox"
+								name="subject"
+								value="english" />
+							Englisch</label
+						>
+						<label
+							><input
+								type="checkbox"
+								name="subject"
+								value="french" />
+							Französisch</label
+						>
+						<label
+							><input
+								type="checkbox"
+								name="subject"
+								value="latin" />
+							Latein</label
+						>
+						<label
+							><input
+								type="checkbox"
+								name="subject"
+								value="spanish" />
+							Spanisch</label
+						>
+						<label
+							><input
+								type="checkbox"
+								name="subject"
+								value="italian" />
+							Italienisch</label
+						>
+					</details>
+
+					<!-- STEM -->
+					<details class="subject-group">
+						<summary>Mathematik &amp; Naturwissenschaften</summary>
+						<label
+							><input
+								type="checkbox"
+								name="subject"
+								value="maths" />
+							Mathematik</label
+						>
+						<label
+							><input
+								type="checkbox"
+								name="subject"
+								value="physics" />
+							Physik</label
+						>
+						<label
+							><input
+								type="checkbox"
+								name="subject"
+								value="chemistry" />
+							Chemie</label
+						>
+						<label
+							><input
+								type="checkbox"
+								name="subject"
+								value="biology" />
+							Biologie</label
+						>
+						<label
+							><input type="checkbox" name="subject" value="cs" />
+							Informatik</label
+						>
+						<label
+							><input
+								type="checkbox"
+								name="subject"
+								value="nut" />
+							Natur und Technik (NuT)</label
+						>
+					</details>
+
+					<!-- Society -->
+					<details class="subject-group">
+						<summary>Gesellschaft &amp; Wirtschaft</summary>
+						<label
+							><input
+								type="checkbox"
+								name="subject"
+								value="history" />
+							Geschichte</label
+						>
+						<label
+							><input
+								type="checkbox"
+								name="subject"
+								value="geography" />
+							Geographie</label
+						>
+						<label
+							><input
+								type="checkbox"
+								name="subject"
+								value="economics" />
+							Wirtschaft und Recht</label
+						>
+						<label
+							><input
+								type="checkbox"
+								name="subject"
+								value="politics" />
+							Politik und Gesellschaft</label
+						>
+						<label
+							><input
+								type="checkbox"
+								name="subject"
+								value="business-cs" />
+							Wirtschaftsinformatik</label
+						>
+					</details>
+
+					<!-- Arts -->
+					<details class="subject-group">
+						<summary>Kunst, Musik &amp; Sport</summary>
+						<label
+							><input
+								type="checkbox"
+								name="subject"
+								value="art" />
+							Kunst</label
+						>
+						<label
+							><input
+								type="checkbox"
+								name="subject"
+								value="music" />
+							Musik</label
+						>
+						<label
+							><input type="checkbox" name="subject" value="pe" />
+							Sport</label
+						>
+					</details>
+
+					<!-- Religion & Ethics -->
+					<details class="subject-group">
+						<summary>Religion &amp; Ethik</summary>
+						<label
+							><input
+								type="checkbox"
+								name="subject"
+								value="catholic" />
+							Katholische Religionslehre</label
+						>
+						<label
+							><input
+								type="checkbox"
+								name="subject"
+								value="evangelic" />
+							Evangelische Religionslehre</label
+						>
+						<label
+							><input
+								type="checkbox"
+								name="subject"
+								value="ethics" />
+							Ethik</label
+						>
+					</details>
+				</div>
+
+				<input type="submit" value="Anmelden" />
+			</form>
+		</main>
 
 		<script src="js/methods.js"></script>
 		<script src="js/tutoring.js"></script>

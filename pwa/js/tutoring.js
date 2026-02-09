@@ -6,7 +6,7 @@ async function main() {
 	// get main elements
 	const firstOpenMain = document.getElementById("page-firstopen");
 	const registerMain = document.getElementById("page-register");
-	const standardMain = document.getElementById("page-standard");
+	const editMain = document.getElementById("page-edit");
 
 	const RGCS = document.getElementById("section-register-callout");
 	const EPC = document.getElementById("section-edit-profile-callout");
@@ -21,16 +21,24 @@ async function main() {
 
 	if (firstOpenMain) firstOpenMain.style.display = "block";
 	if (registerMain) registerMain.style.display = "none";
-	if (standardMain) standardMain.style.display = "none";
+	if (editMain) editMain.style.display = "none";
 
 	// get btns
 	const btnRegister = document.getElementById("btn-register");
+	const btnEdit = document.getElementById("btn-edit");
 
 	if (btnRegister) {
 		btnRegister.addEventListener("click", () => {
 			if (firstOpenMain) firstOpenMain.style.display = "none";
 			if (registerMain) registerMain.style.display = "block";
-			if (standardMain) standardMain.style.display = "none";
+		});
+	}
+
+	if (btnEdit) {
+		btnEdit.addEventListener("click", () => {
+			if (firstOpenMain) firstOpenMain.style.display = "none";
+			if (registerMain) registerMain.style.display = "none";
+			if (editMain) editMain.style.display = "block";
 		});
 	}
 
@@ -101,6 +109,56 @@ async function main() {
 				console.error(err);
 				resultsEl.innerHTML =
 					'<p class="muted">Fehler bei der Suche.</p>';
+			}
+		});
+	}
+
+	// fetch subjects and pre-check checkboxes for the edit page
+	try {
+		const resp = await fetch("/get-subjects", {
+			credentials: "same-origin"
+		});
+		if (resp.ok) {
+			const data = await resp.json();
+			const userSubjects = data.user_subjects || [];
+			// check checkboxes only inside the edit page
+			const editCheckboxes = document.querySelectorAll(
+				'#page-edit input[name="subject"]'
+			);
+			editCheckboxes.forEach((cb) => {
+				if (userSubjects.includes(cb.value)) cb.checked = true;
+			});
+		}
+	} catch (err) {
+		console.error("Failed to fetch subjects", err);
+	}
+
+	// handle edit form submission via fetch to avoid navigating away
+	const editForm = document.querySelector(
+		'form[action="/edit-tutor-profile"]'
+	);
+	if (editForm) {
+		editForm.addEventListener("submit", async (ev) => {
+			ev.preventDefault();
+			const fd = new FormData(editForm);
+			const params = new URLSearchParams();
+			fd.getAll("subject").forEach((s) => params.append("subject", s));
+			try {
+				const resp = await fetch(
+					"/edit-tutor-profile?" + params.toString(),
+					{ credentials: "same-origin" }
+				);
+				if (!resp.ok) throw new Error("Netzwerkfehler");
+				const json = await resp.json();
+				// simple success handling: go back to main page and show a message
+				if (document.getElementById("page-edit")) {
+					document.getElementById("page-edit").style.display = "none";
+					if (firstOpenMain) firstOpenMain.style.display = "block";
+				}
+				window.location.reload();
+			} catch (err) {
+				console.error(err);
+				// give a error msg
 			}
 		});
 	}

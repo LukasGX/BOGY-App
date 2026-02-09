@@ -43,6 +43,14 @@ input[type="submit"]:active {
 	background: #007bd9;
 }
 
+button.full {
+	width: 100%;
+}
+
+button.urgent {
+	background: #9d0000;
+}
+
 input[type="text"],
 input[type="password"] {
 	width: 100%;
@@ -198,6 +206,8 @@ main {
 	display: grid;
 	gap: 1rem;
 	grid-template-columns: 1fr 1fr;
+
+	margin-bottom: 3rem;
 }
 
 .app {
