@@ -14,5 +14,25 @@ if (pwLink) {
 	});
 }
 
+const btnActivatePush = document.getElementById("btn-activatepush");
+async function checkPushStatus() {
+	if (!btnActivatePush) return;
+
+	try {
+		const res = await fetch("/api/push/status");
+		const data = await res.json();
+
+		if (data.has_push) {
+			btnActivatePush.style.display = "none";
+		} else {
+			btnActivatePush.style.display = "block";
+		}
+	} catch (err) {
+		btnActivatePush.style.display = "block";
+	}
+}
+
+checkPushStatus();
+
 // check login
 getProfile();

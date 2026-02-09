@@ -1,6 +1,9 @@
+import json
+from pywebpush import webpush, WebPushException
 from fastapi import Depends, FastAPI, HTTPException, Request, Form
 from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 import sqlite3
 import os
@@ -10,10 +13,20 @@ from argon2.exceptions import VerifyMismatchError
 
 from starlette.middleware.sessions import SessionMiddleware
 
+VAPID_PUBLIC_KEY = "BFKZeYhAiE6zy3S3rWWSLbRqYn026iSBN-HPcnPiDh2rNWb1DE0Kugfy_Da5qS__c-7UHFcCfwlqxjAeAbMh2a4"
+VAPID_PRIVATE_KEY = "4JgtoAJL6RkyemE2vIOc9QzRYtu83LwZ8RWR6VxjghE"
+VAPID_EMAIL = "noreply@deineapp.de"
 
 app = FastAPI()
 
 app.add_middleware(SessionMiddleware, secret_key="3PlRPaH7vpCUmWCy9S9SkXy2ia3ezj5dLCCQb5zhzQy5cvcM6Z", same_site="lax")
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Später einschränken
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 app.mount("/app", StaticFiles(directory="pwa", html=True), name="pwa")
 
 DB_PATH = "data.db"
@@ -26,10 +39,12 @@ class CreateUserRequest(BaseModel):
     role: str
     class_id: Optional[int] = Field(None, alias="class")
 
+class PushSubscription(BaseModel):
+    endpoint: str
+    keys: dict  # {p256dh, auth}
 
 class CreateClassRequest(BaseModel):
     name: str
-
 
 # argon2 password hasher
 ph = PasswordHasher()
@@ -104,6 +119,19 @@ def init_db():
         """
     )
 
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS push_subscriptions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            endpoint TEXT NOT NULL,
+            p256dh TEXT NOT NULL,
+            auth TEXT NOT NULL,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY(user_id) REFERENCES users(id),
+            UNIQUE(endpoint)
+        )
+    """)
+
     # seed subjects
     subjects = [
         "german",
@@ -152,9 +180,18 @@ def require_role(*allowed_roles: int):
     async def _role(request: Request):
         session_data = await LoggedIn(request)
         user_role = session_data["role"]
+
+        conn = get_db()
+        cursor = conn.cursor()
+        cursor.execute("SELECT id FROM roles WHERE name = ?", (user_role,))
+        row = cursor.fetchone()
+        conn.close()
+        if not row:
+            raise HTTPException(403, "Invalid user role")
+        user_role = row["id"]
         
         if user_role not in allowed_roles:
-            raise HTTPException(403, f"Allowed roles: {allowed_roles}")
+            raise HTTPException(403, f"Allowed roles: {allowed_roles}, you are: {user_role}")
         return session_data
     return _role
 
@@ -312,6 +349,44 @@ async def register_tutoring(request: Request, session_data: dict = Depends(Logge
 
     return {"id": tutoring_id, "user": session_data["user_id"], "subjects": subject_ids}
 
+
+
+@app.get("/edit-tutor-profile")
+async def edit_tutor_profile(request: Request, session_data: dict = Depends(LoggedIn)):
+    # allow teachers to update their tutoring subjects (insert if none exists)
+    subject_names = request.query_params.getlist("subject")
+
+    conn = get_db()
+    cursor = conn.cursor()
+
+    subject_ids = []
+    for name in subject_names:
+        cursor.execute("SELECT id FROM subjects WHERE name = ?", (name,))
+        s = cursor.fetchone()
+        if not s:
+            conn.close()
+            raise HTTPException(status_code=400, detail=f"Invalid subject: {name}")
+        subject_ids.append(str(s["id"]))
+
+    subjects_field = ",".join(subject_ids) if subject_ids else None
+
+    cursor.execute("SELECT id FROM tutoring WHERE user = ?", (session_data["user_id"],))
+    existing = cursor.fetchone()
+    try:
+        if existing:
+            cursor.execute("UPDATE tutoring SET subjects = ? WHERE user = ?", (subjects_field, session_data["user_id"]))
+            tutoring_id = existing["id"]
+        else:
+            cursor.execute("INSERT INTO tutoring(user, subjects) VALUES(?,?)", (session_data["user_id"], subjects_field))
+            tutoring_id = cursor.lastrowid
+        conn.commit()
+    except sqlite3.IntegrityError:
+        conn.close()
+        raise HTTPException(status_code=400, detail="Could not update tutoring entry")
+    conn.close()
+
+    return {"id": tutoring_id, "user": session_data["user_id"], "subjects": subject_ids}
+
 @app.get("/search-tutors")
 async def search_tutors(request: Request):
     # collect requested subject names from query params
@@ -399,7 +474,192 @@ async def search_tutors(request: Request):
 
     conn.close()
     return {"results": results, "count": len(results)}
+
+
+@app.get("/get-subjects")
+async def get_subjects(session_data: dict = Depends(LoggedIn)):
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("SELECT id, name FROM subjects ORDER BY name")
+    all_subs = cursor.fetchall()
+
+    cursor.execute("SELECT subjects FROM tutoring WHERE user = ?", (session_data["user_id"],))
+    row = cursor.fetchone()
+    user_sub_ids = []
+    if row and row["subjects"]:
+        user_sub_ids = [int(s) for s in row["subjects"].split(",") if s]
+
+    id_to_name = {r["id"]: r["name"] for r in all_subs}
+    conn.close()
+
+    return {
+        "subjects": [{"id": r["id"], "name": r["name"]} for r in all_subs],
+        "user_subject_ids": user_sub_ids,
+        "user_subjects": [id_to_name.get(i) for i in user_sub_ids],
+    }
+
 # PAGES
 @app.get("/home")
 async def home(session_data: dict = Depends(LoggedIn)):
     return {"message": f"Welcome to the home page, {session_data['username']}!"}
+
+# PUSH NOTIFICATIONS
+@app.post("/api/push/subscribe")
+async def push_subscribe(
+    payload: PushSubscription, 
+    session_data: dict = Depends(LoggedIn)
+):
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    try:
+        cursor.execute("""
+            INSERT INTO push_subscriptions (user_id, endpoint, p256dh, auth)
+            VALUES (?, ?, ?, ?)
+        """, (
+            session_data["user_id"],
+            payload.endpoint,
+            payload.keys["p256dh"],
+            payload.keys["auth"]
+        ))
+        conn.commit()
+        conn.close()
+        return {"status": "subscribed", "user_id": session_data["user_id"]}
+    except sqlite3.IntegrityError:
+        conn.close()
+        raise HTTPException(409, "Subscription already exists")
+
+
+@app.delete("/api/push/subscribe/{endpoint}")
+async def push_unsubscribe(
+    endpoint: str,
+    session_data: dict = Depends(LoggedIn)
+):
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute(
+        "DELETE FROM push_subscriptions WHERE user_id = ? AND endpoint = ?",
+        (session_data["user_id"], endpoint)
+    )
+    conn.commit()
+    deleted = cursor.rowcount
+    conn.close()
+    return {"deleted": deleted > 0}
+
+@app.post("/api/push/send-all")
+async def send_push_all(title: str = Form(...), body: str = Form(...), session_data: dict = Depends(LoggedIn)):
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("SELECT endpoint, p256dh, auth FROM push_subscriptions")
+    
+    subs = []
+    for row in cursor.fetchall():
+        sub = {
+            "endpoint": row["endpoint"],
+            "keys": {"p256dh": row["p256dh"], "auth": row["auth"]}
+        }
+        subs.append(sub)
+    
+    conn.close()
+    
+    successful = 0
+    for subscription_info in subs:
+        try:
+            response = webpush(
+                subscription_info=subscription_info,
+                data=json.dumps({"title": title, "body": body, "icon": "/icon.png"}),
+                vapid_private_key=VAPID_PRIVATE_KEY,
+                vapid_claims={"sub": "mailto:noreply@deineapp.de"}
+            )
+            successful += 1
+        except:
+            pass
+    
+    return {
+        "sent": successful,
+        "failed": len(subs) - successful,
+        "total": len(subs),
+        "target": "ALLE NUTZER"
+    }
+
+@app.post("/api/push/send-user")
+async def send_push_user(
+    user_id: int = Form(...), 
+    title: str = Form(...), 
+    body: str = Form(...), 
+    session_data: dict = Depends(LoggedIn)
+):
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT endpoint, p256dh, auth FROM push_subscriptions 
+        WHERE user_id = ?
+    """, (user_id,))
+    
+    subs = []
+    row = cursor.fetchone()
+    if row:
+        sub = {
+            "endpoint": row["endpoint"],
+            "keys": {"p256dh": row["p256dh"], "auth": row["auth"]}
+        }
+        subs.append(sub)
+    
+    conn.close()
+    
+    if not subs:
+        return {"sent": 0, "failed": 0, "total": 0, "error": "Kein User oder keine Subscription"}
+    
+    successful = 0
+    for subscription_info in subs:
+        try:
+            response = webpush(
+                subscription_info=subscription_info,
+                data=json.dumps({"title": title, "body": body, "icon": "/icon.png"}),
+                vapid_private_key=VAPID_PRIVATE_KEY,
+                vapid_claims={"sub": "mailto:noreply@deineapp.de"}
+            )
+            successful += 1
+        except:
+            pass
+    
+    return {
+        "sent": successful,
+        "failed": len(subs) - successful,
+        "total": len(subs),
+        "target": f"USER #{user_id}"
+    }
+
+@app.get("/api/push/status")
+async def get_push_status(session_data: dict = Depends(LoggedIn)):
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    cursor.execute("""
+        SELECT 
+            u.username,
+            u.firstname,
+            u.lastname,
+            COUNT(ps.id) as subscription_count,
+            MAX(ps.created_at) as last_subscription
+        FROM users u 
+        LEFT JOIN push_subscriptions ps ON u.id = ps.user_id 
+        WHERE u.id = ?
+        GROUP BY u.id
+    """, (session_data.get("user_id"),))
+    
+    result = cursor.fetchone()
+    conn.close()
+    
+    if not result:
+        raise HTTPException(404, "User nicht gefunden")
+    
+    status = {
+        "user_id": session_data.get("user_id"),
+        "username": result["username"],
+        "has_push": result["subscription_count"] > 0,
+        "subscription_count": result["subscription_count"],
+        "last_subscription": result["last_subscription"]
+    }
+    
+    return status
