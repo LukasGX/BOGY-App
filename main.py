@@ -7,15 +7,19 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 import sqlite3
 import os
+from dotenv import load_dotenv
 from typing import Optional
 from argon2 import PasswordHasher
 from argon2.exceptions import VerifyMismatchError
 
 from starlette.middleware.sessions import SessionMiddleware
 
-VAPID_PUBLIC_KEY = "BFKZeYhAiE6zy3S3rWWSLbRqYn026iSBN-HPcnPiDh2rNWb1DE0Kugfy_Da5qS__c-7UHFcCfwlqxjAeAbMh2a4"
-VAPID_PRIVATE_KEY = "4JgtoAJL6RkyemE2vIOc9QzRYtu83LwZ8RWR6VxjghE"
-VAPID_EMAIL = "noreply@deineapp.de"
+load_dotenv()
+
+# Load VAPID credentials from environment for security (set in .env)
+VAPID_PUBLIC_KEY = os.getenv("VAPID_PUBLIC_KEY")
+VAPID_PRIVATE_KEY = os.getenv("VAPID_PRIVATE_KEY")
+VAPID_EMAIL = os.getenv("VAPID_EMAIL")
 
 app = FastAPI()
 
