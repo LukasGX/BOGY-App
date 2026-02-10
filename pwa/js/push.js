@@ -1,5 +1,5 @@
 const VAPID_PUBLIC_KEY =
-	"BFKZeYhAiE6zy3S3rWWSLbRqYn026iSBN-HPcnPiDh2rNWb1DE0Kugfy_Da5qS__c-7UHFcCfwlqxjAeAbMh2a4";
+	"BOzTsLFXHSxIDtzgBVWzRGP8UmdYGbd3-0IF3I-dQF30gwSpG_AfHRrS8LV4Qb-U2linj7K0xlDxzRNe04AqqHA";
 
 const urlBase64ToUint8Array = (base64String) => {
 	const padding = "=".repeat((4 - (base64String.length % 4)) % 4);

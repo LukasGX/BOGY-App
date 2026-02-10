@@ -552,6 +552,7 @@ async def push_unsubscribe(
 
 @app.post("/api/push/send-all")
 async def send_push_all(title: str = Form(...), body: str = Form(...), session_data: dict = Depends(LoggedIn)):
+    print(f"Sending push to all users: {title}")
     conn = get_db()
     cursor = conn.cursor()
     cursor.execute("SELECT endpoint, p256dh, auth FROM push_subscriptions")
@@ -576,8 +577,8 @@ async def send_push_all(title: str = Form(...), body: str = Form(...), session_d
                 vapid_claims={"sub": "mailto:noreply@deineapp.de"}
             )
             successful += 1
-        except:
-            pass
+        except Exception as e:
+            print(f"Failed to send push to {subscription_info['endpoint']} - {str(e)}")
     
     return {
         "sent": successful,
