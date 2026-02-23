@@ -20,10 +20,17 @@ load_dotenv()
 VAPID_PUBLIC_KEY = os.getenv("VAPID_PUBLIC_KEY")
 VAPID_PRIVATE_KEY = os.getenv("VAPID_PRIVATE_KEY")
 VAPID_EMAIL = os.getenv("VAPID_EMAIL")
+SECRET_KEY = os.getenv("SESSION_SECRET_KEY")
 
 app = FastAPI()
 
-app.add_middleware(SessionMiddleware, secret_key="3PlRPaH7vpCUmWCy9S9SkXy2ia3ezj5dLCCQb5zhzQy5cvcM6Z", same_site="lax")
+app.add_middleware(
+    SessionMiddleware,
+    secret_key=SECRET_KEY,
+    same_site="strict",
+    https_only=True,
+    max_age=60*60*24*7 # 7 days
+)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],  # Später einschränken
