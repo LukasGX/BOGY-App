@@ -351,7 +351,7 @@ async def register_tutoring(request: Request, session_data: dict = Depends(Logge
         raise HTTPException(status_code=400, detail="Could not create tutoring entry")
     conn.close()
 
-    return RedirectResponse(url="/app/tutoring_registering_success.html.html", status_code=302)
+    return RedirectResponse(url="/app/tutoring_registering_success.html", status_code=302)
 
 @app.get("/edit-tutor-profile")
 async def edit_tutor_profile(request: Request, session_data: dict = Depends(LoggedIn)):
