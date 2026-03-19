@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  bogy-app:
+    image: python:3.11-slim
+    container_name: bogy-app
+    working_dir: /app
+    command: >
+      sh -c "pip install --no-cache-dir -r requirements.txt pywebpush &&
+             uvicorn main:app --host 0.0.0.0 --port 8000"
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./:/app
+      - ./data:/app/data
+      - ./.env:/app/.env:ro
+    environment:
+      - ENV=production
+    restart: unless-stopped
+    networks:
+      - bogy-app-network
+
+volumes:
+  data:
+    driver: local
+
+networks:
+  bogy-app-network:
+    driver: bridge
