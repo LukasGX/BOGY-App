@@ -261,3 +261,23 @@ main {
 	justify-content: center;
 	gap: 0.5rem;
 }
+
+.code-el {
+	border: 1px solid #ccc;
+	border-radius: 6px;
+	padding: 0.8rem 1rem;
+	background: #f9f9f9;
+}
+
+.code-el > .code {
+	font-family: "Courier New", monospace;
+	font-size: 1.2rem;
+	letter-spacing: 0.1rem;
+	display: block;
+}
+
+.code-el > .expiry {
+	font-size: 0.9rem;
+	color: #808080;
+	margin-top: 0.3rem;
+}

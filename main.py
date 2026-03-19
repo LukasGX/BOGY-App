@@ -166,6 +166,16 @@ def init_db():
             )
         """)
 
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS wlan_codes (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_ids INTEGER NOT NULL,
+                code TEXT NOT NULL,
+                expiry DATETIME NOT NULL,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+
         # settings
         cursor.execute("PRAGMA foreign_keys=ON")
         cursor.execute("PRAGMA journal_mode=WAL")
@@ -234,7 +244,7 @@ def require_role(*allowed_roles: int):
 # ROOT
 @app.get("/")
 async def root():
-    raise HTTPException(status_code=404, detail="Not Found")
+    return RedirectResponse(url="/app/index.html", status_code=302)
 
 # USERS
 @app.post("/login")
@@ -677,3 +687,33 @@ async def get_push_status(session_data: dict = Depends(LoggedIn)):
         }
         
         return status
+    
+@app.get("/wlan")
+async def wlan_codes(session_data: dict = Depends(LoggedIn)):
+    with get_db() as conn:
+        cursor = conn.cursor()
+
+        # remove expired codes first
+        cursor.execute("DELETE FROM wlan_codes WHERE expiry <= CURRENT_TIMESTAMP")
+        conn.commit()
+
+        uid = str(session_data["user_id"])
+        exact = uid
+        prefix = uid + ";%"
+        suffix = "%;" + uid
+        in_middle = "%;" + uid + ";%"
+
+        cursor.execute(
+            """
+            SELECT code, expiry FROM wlan_codes
+            WHERE (user_ids = 'all' OR user_ids = ? OR user_ids LIKE ? OR user_ids LIKE ? OR user_ids LIKE ?)
+            AND expiry > CURRENT_TIMESTAMP
+            """,
+            (exact, prefix, suffix, in_middle),
+        )
+
+        codes = []
+        for row in cursor.fetchall():
+            codes.append({"code": row["code"], "expiry": row["expiry"]})
+
+        return {"codes": codes}

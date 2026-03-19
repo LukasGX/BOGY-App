@@ -1,6 +1,7 @@
 // add click event listeners to the links
 const tutoringLink = document.getElementById("app-tutoring");
 const pwLink = document.getElementById("app-pw");
+const wlanLink = document.getElementById("app-wlan");
 
 if (tutoringLink) {
 	tutoringLink.addEventListener("click", () => {
@@ -11,6 +12,12 @@ if (tutoringLink) {
 if (pwLink) {
 	pwLink.addEventListener("click", () => {
 		window.location.href = "/app/pw.html";
+	});
+}
+
+if (wlanLink) {
+	wlanLink.addEventListener("click", () => {
+		window.location.href = "/app/wlan.html";
 	});
 }
 
