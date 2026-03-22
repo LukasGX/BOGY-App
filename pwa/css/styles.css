@@ -267,6 +267,7 @@ main {
 	border-radius: 6px;
 	padding: 0.8rem 1rem;
 	background: #f9f9f9;
+	margin-bottom: 1rem;
 }
 
 .code-el > .code {

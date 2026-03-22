@@ -717,3 +717,13 @@ async def wlan_codes(session_data: dict = Depends(LoggedIn)):
             codes.append({"code": row["code"], "expiry": row["expiry"]})
 
         return {"codes": codes}
+    
+@app.post("/wlan")
+async def add_wlan_code(code: str, users: str, expiry: str, session_data: dict = Depends(require_role(4))):
+    with get_db() as conn:
+        cursor = conn.cursor()
+
+        cursor.execute("INSERT INTO wlan_codes (user_ids, code, expiry) VALUES (?, ?, ?)", (users, code, expiry),)
+        conn.commit()
+
+        return {"status": "success", "code":{"code": code, "users": users, "expiry": expiry}}
