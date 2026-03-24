@@ -43,3 +43,18 @@ checkPushStatus();
 
 // check login
 getProfile();
+
+// check for wlan codes
+async function wlanCodesCheck() {
+	const response = await fetch("/wlan");
+	const data = await response.json();
+	const appWlanBox = document.getElementById("app-wlan-box");
+
+	if (data.codes.length > 0) {
+		const badge = document.createElement("div");
+		badge.classList.add("badge");
+		badge.textContent = data.codes.length;
+		appWlanBox.appendChild(badge);
+	}
+}
+wlanCodesCheck();

@@ -75,6 +75,7 @@ header img {
 	box-shadow: var(--shadow);
 	transition: all var(--transition);
 	margin-bottom: 0.3rem;
+	position: relative;
 }
 
 .app:hover {
