@@ -72,7 +72,7 @@ async function main() {
 			resultsEl.innerHTML = '<p class="muted">Suche läuft…</p>';
 			try {
 				const resp = await fetch(
-					"/search-tutors?" + params.toString(),
+					"/api/v1/tutoring/search-tutors?" + params.toString(),
 					{ credentials: "same-origin" }
 				);
 				if (!resp.ok) throw new Error("Netzwerkfehler");
@@ -115,7 +115,7 @@ async function main() {
 
 	// fetch subjects and pre-check checkboxes for the edit page
 	try {
-		const resp = await fetch("/get-subjects", {
+		const resp = await fetch("/api/v1/data/get-subjects", {
 			credentials: "same-origin"
 		});
 		if (resp.ok) {
@@ -135,7 +135,7 @@ async function main() {
 
 	// handle edit form submission via fetch to avoid navigating away
 	const editForm = document.querySelector(
-		'form[action="/edit-tutor-profile"]'
+		'form[action="/api/v1/tutoring/edit-tutor-profile"]'
 	);
 	if (editForm) {
 		editForm.addEventListener("submit", async (ev) => {
@@ -145,7 +145,7 @@ async function main() {
 			fd.getAll("subject").forEach((s) => params.append("subject", s));
 			try {
 				const resp = await fetch(
-					"/edit-tutor-profile?" + params.toString(),
+					"/api/v1/tutoring/edit-tutor-profile?" + params.toString(),
 					{ credentials: "same-origin" }
 				);
 				if (!resp.ok) throw new Error("Netzwerkfehler");

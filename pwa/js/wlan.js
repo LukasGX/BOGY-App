@@ -8,7 +8,7 @@ async function main() {
 	const foundSomeMain = document.getElementById("foundsome");
 	const codesEl = document.getElementById("codes");
 
-	const response = await fetch("/wlan");
+	const response = await fetch("/api/v1/wlan/");
 	const data = await response.json();
 
 	if (data.codes.length > 0) {

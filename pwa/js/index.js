@@ -26,7 +26,7 @@ async function checkPushStatus() {
 	if (!btnActivatePush) return;
 
 	try {
-		const res = await fetch("/api/push/status");
+		const res = await fetch("/api/v1/push/status");
 		const data = await res.json();
 
 		if (data.has_push) {
@@ -46,7 +46,7 @@ getProfile();
 
 // check for wlan codes
 async function wlanCodesCheck() {
-	const response = await fetch("/wlan");
+	const response = await fetch("/api/v1/wlan/");
 	const data = await response.json();
 	const appWlanBox = document.getElementById("app-wlan-box");
 

@@ -19,7 +19,10 @@
 
 			<p>Wähle ein oder mehrere Fächer und starte die Suche sofort.</p>
 
-			<form action="/search-tutors" method="get" class="search-form">
+			<form
+				action="/api/v1/tutoring/search-tutors"
+				method="get"
+				class="search-form">
 				<div class="subject-grid">
 					<!-- Languages -->
 					<details class="subject-group">
@@ -229,7 +232,7 @@
 		<main id="page-register">
 			<h1>Jetzt Nachhilfe-Partner werden</h1>
 
-			<form action="/register-tutoring">
+			<form action="api/v1/tutoring/register-tutoring">
 				<input type="hidden" name="type" value="teacher" />
 
 				<h3>Erstelle dein Profil</h3>
@@ -423,7 +426,7 @@
 		<main id="page-edit">
 			<h1>Nachhilfe-Partner-Profil bearbeiten</h1>
 
-			<form action="/edit-tutor-profile">
+			<form action="/api/v1/tutoring/edit-tutor-profile">
 				<input type="hidden" name="type" value="teacher" />
 
 				<div class="subject-grid">

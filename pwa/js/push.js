@@ -33,7 +33,7 @@ if (activatePushBtn)
 		});
 
 		// An Backend senden
-		await fetch("/api/push/subscribe", {
+		await fetch("/api/v1/push/subscribe", {
 			method: "POST",
 			headers: { "Content-Type": "application/json" },
 			body: JSON.stringify(subscription)

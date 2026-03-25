@@ -1,5 +1,5 @@
 async function getProfile() {
-	const response = await fetch("/profile", {
+	const response = await fetch("/api/v1/user/profile", {
 		method: "GET",
 		credentials: "include"
 	});
@@ -9,6 +9,6 @@ async function getProfile() {
 		console.log("User is logged in:", data);
 		return data;
 	} else {
-		window.location.href = "/app/login.html";
+		// window.location.href = "/app/login.html";
 	}
 }
