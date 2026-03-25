@@ -5,9 +5,9 @@ Eine mobile Web-App für Schüler und Lehrkräfte des Bodensee-Gymnasiums Lindau
 ## Features
 
 - Nachhilfevermittlung
-- Passwort-Manager für Schul-Apps **`In Arbeit`**
+- Automatisches Senden von WLAN-Voucher-Codes von Lehrern an Schüler
 
 ## Geplante Features
 
-- Automatisches Senden von WLAN-Voucher-Codes von Lehrern an Schüler
 - Interaktive Elternbriefe
+- Passwort-Manager für Schul-Apps
