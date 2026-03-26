@@ -22,7 +22,9 @@ h11==0.16.0
 http_ece==1.2.1
 idna==3.11
 itsdangerous==2.2.0
+Jinja2==3.1.6
 limits==5.8.0
+MarkupSafe==3.0.3
 multidict==6.7.1
 packaging==26.0
 propcache==0.4.1
