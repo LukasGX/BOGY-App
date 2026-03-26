@@ -10,10 +10,10 @@ from slowapi.errors import RateLimitExceeded
 from starlette.middleware.sessions import SessionMiddleware
 
 # import deps
-from api.v1.deps import LoggedIn, get_db
+from api.v1.deps import get_db
 
 # import routers
-from api.v1.routers import administration, wlan, push, tutoring, user, data
+from api.v1.routers import administration, wlan, push, tutoring, user, data, admin_dashboard
 
 # import definitions
 from definitions import sl_limiter, SECRET_KEY
@@ -46,8 +46,10 @@ app.include_router(push.router, prefix="/api/v1/push", tags=["push"])
 app.include_router(tutoring.router, prefix="/api/v1/tutoring", tags=["tutoring"])
 app.include_router(user.router, prefix="/api/v1/user", tags=["user"])
 app.include_router(data.router, prefix="/api/v1/data", tags=["data"])
+app.include_router(admin_dashboard.router, prefix="/dashboard", tags=["admin_dashboard"])
 
 app.mount("/app", StaticFiles(directory="pwa", html=True), name="pwa")
+app.mount("/static", StaticFiles(directory="static", html=True), name="static")
 
 def init_db():
     with get_db() as conn:

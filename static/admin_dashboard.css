@@ -1,0 +1,91 @@
+:root {
+	--primary: #005594;
+	--primary-hover: #0066b3;
+	--urgent: #c82333;
+	--bg-light: #f8f9fa;
+	--bg-card: rgba(255, 255, 255, 0.95);
+	--border: #dfe1e4;
+	--text-muted: #6c757d;
+	--shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+	--shadow-hover: 0 8px 24px rgba(0, 0, 0, 0.12);
+	--radius: 12px;
+	--transition: 250ms ease-out;
+	--bg: #f0f4f8;
+}
+
+* {
+	font-family: "Inter", system-ui, sans-serif;
+	box-sizing: border-box;
+}
+
+body {
+	color: #333;
+	line-height: 1.5;
+	margin: 0;
+}
+
+header {
+	background: var(--bg);
+	padding: 0.6rem;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+}
+
+header > div {
+	display: flex;
+	align-items: center;
+	gap: 1rem;
+}
+
+header img {
+	height: 4rem;
+}
+
+header h1 {
+	margin: 0;
+	margin-bottom: -0.4rem;
+	color: var(--primary);
+	font-size: 1.7rem;
+}
+
+header h1.evs {
+	font-size: 1.6rem;
+	margin-bottom: 0;
+}
+
+header p {
+	margin: 0;
+	font-family: "Courier New", monospace;
+	letter-spacing: 0.2rem;
+}
+
+main {
+	padding: 0.6rem;
+	display: grid;
+	grid-template-columns: 1fr 1fr 1fr;
+	gap: 1rem;
+}
+
+main > div {
+	width: 100%;
+	background: var(--bg-card);
+	border: 1px solid var(--border);
+	border-radius: var(--radius);
+	box-shadow: var(--shadow);
+	overflow: hidden;
+}
+
+.app-head {
+	background-color: var(--bg);
+	padding: 0.4rem;
+	padding-left: 1rem;
+
+	margin: 0;
+	color: var(--primary);
+	font-size: 1.6rem;
+}
+
+.app-body {
+	padding: 1rem;
+}
