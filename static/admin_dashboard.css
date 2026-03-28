@@ -24,6 +24,52 @@ body {
 	margin: 0;
 }
 
+.modal {
+	position: fixed;
+	top: 0;
+	left: 0;
+	height: 100vh;
+	width: 100vw;
+	background-color: rgba(0, 0, 0, 0.8);
+	z-index: 9999;
+
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.modal-content {
+	background-color: #ffffff;
+	padding: 2rem;
+	border-radius: 8px;
+
+	min-width: 30%;
+	min-height: 30%;
+
+	max-width: 80%;
+	max-height: 80%;
+
+	position: relative;
+}
+
+.modal-close {
+	font-size: 1.5rem;
+	position: absolute;
+	top: 1rem;
+	right: 1rem;
+	user-select: none;
+	cursor: pointer;
+	transition: 225ms ease;
+}
+
+.modal-close:hover {
+	color: #9a0000;
+}
+
+.modal-content h2 {
+	margin: 0;
+}
+
 header {
 	background: var(--bg);
 	padding: 0.6rem;
@@ -60,8 +106,22 @@ header p {
 	letter-spacing: 0.2rem;
 }
 
+button {
+	background-color: var(--primary);
+	border: none;
+	color: #ffffff;
+	padding: 0.5rem 1rem;
+	border-radius: 8px;
+	cursor: pointer;
+	transition: 225ms ease;
+}
+
+button:hover {
+	background-color: var(--primary-hover);
+}
+
 main {
-	padding: 0.6rem;
+	padding: 1rem;
 	display: grid;
 	grid-template-columns: 1fr 1fr 1fr;
 	gap: 1rem;
@@ -78,14 +138,46 @@ main > div {
 
 .app-head {
 	background-color: var(--bg);
-	padding: 0.4rem;
-	padding-left: 1rem;
+	padding: 0.4rem 1rem;
 
 	margin: 0;
 	color: var(--primary);
 	font-size: 1.6rem;
+
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
 }
 
 .app-body {
 	padding: 1rem;
+}
+
+.class-card {
+	background-color: rgba(0, 0, 0, 0.06);
+	padding: 0.3rem 1rem;
+	border-radius: 8px;
+	margin-bottom: 0.3rem;
+	border: 1px solid rgba(0, 0, 0, 0.2);
+
+	display: flex;
+	gap: 1rem;
+	align-items: center;
+}
+
+.class-card.add-class {
+	border: 1px dashed rgba(0, 0, 0, 0.3);
+	justify-content: center;
+	cursor: pointer;
+	transition: 225ms ease;
+}
+
+.class-card.add-class:hover {
+	border: 1px solid rgba(0, 0, 0, 0.2);
+	background-color: rgba(0, 0, 0, 0.1);
+}
+
+.class-card span:first-of-type {
+	font-size: 1.2rem;
+	font-weight: bold;
 }

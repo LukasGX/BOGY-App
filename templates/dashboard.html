@@ -22,9 +22,24 @@
 		</header>
 		<main>
 			<div>
-				<div class="app-head">Klassen</div>
-				<div class="app-body">ABC</div>
+				<div class="app-head">
+					Klassen
+					<button id="btn-details-classes">Details</button>
+				</div>
+				<div class="app-body">
+					{% for class in classes %}
+					<div class="class-card">
+						<span>{{ class.name }}</span>
+						<span>Schüler: {{ class.student_count }}</span>
+					</div>
+					{% endfor %}
+					<div class="class-card add-class">
+						<span>+</span>
+					</div>
+				</div>
 			</div>
 		</main>
+
+		<script src="/static/admin_dashboard.js"></script>
 	</body>
 </html>
