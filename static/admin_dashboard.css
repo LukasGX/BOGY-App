@@ -40,8 +40,8 @@ body {
 
 .modal-content {
 	background-color: #ffffff;
-	padding: 2rem;
-	border-radius: 8px;
+	padding: 1.3rem;
+	border-radius: 16px;
 
 	min-width: 30%;
 	min-height: 30%;
@@ -68,6 +68,7 @@ body {
 
 .modal-content h2 {
 	margin: 0;
+	margin-bottom: 1rem;
 }
 
 header {
@@ -163,18 +164,18 @@ main > div {
 	display: flex;
 	gap: 1rem;
 	align-items: center;
+	transition: 225ms ease;
+	cursor: pointer;
+}
+
+.class-card:hover {
+	background-color: rgba(0, 0, 0, 0.1);
+	border: 1px solid rgba(0, 0, 0, 0.2) !important;
 }
 
 .class-card.add-class {
 	border: 1px dashed rgba(0, 0, 0, 0.3);
 	justify-content: center;
-	cursor: pointer;
-	transition: 225ms ease;
-}
-
-.class-card.add-class:hover {
-	border: 1px solid rgba(0, 0, 0, 0.2);
-	background-color: rgba(0, 0, 0, 0.1);
 }
 
 .class-card span:first-of-type {

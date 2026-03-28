@@ -23,3 +23,23 @@ def get_subjects_s(session_data):
 def encrypt(input):
     output = hash_password(input)
     return {"encrypted": output}
+
+def get_classes_s(session_data):
+    with get_db() as conn:
+        cursor = conn.cursor()
+
+        cursor.execute("""
+            SELECT
+                c.id,
+                c.name,
+                COUNT(u.id) AS student_count
+            FROM classes c
+            LEFT JOIN users u
+                ON u.class = c.id
+            AND u.role = 1
+            GROUP BY c.id, c.name
+            ORDER BY c.name ASC;
+        """)
+        classes = cursor.fetchall()
+
+        return {"classes": classes}

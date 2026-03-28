@@ -14,3 +14,8 @@ async def get_subjects(request: Request, session_data: dict = Depends(LoggedIn))
 @sl_limiter.limit("3/hour")
 async def encrypt_string(request: Request, input: str):
     return encrypt(input)
+
+@router.get("/get-classes")
+@sl_limiter.limit("1/second")
+async def get_classes(request: Request, session_data: dict = Depends(LoggedIn)):
+    return get_classes_s(session_data)
