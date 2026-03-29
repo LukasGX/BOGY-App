@@ -1,6 +1,7 @@
 import json
 import sqlite3
 from fastapi import APIRouter, Depends, Form, HTTPException, Request
+from fastapi.params import Body
 import webpush
 from api.v1.deps import get_db, hash_password, require_role
 from services.administration_service import *
@@ -34,3 +35,8 @@ async def send_push_user(
     session_data: dict = Depends(require_role(4))
 ):
     return push_user(user_id, title, body)
+
+@router.delete("/class/{class_id}")
+@sl_limiter.limit("10/minute")
+async def delete_class(request: Request, class_id: int, session_data: dict = Depends(require_role(4))):
+    return delete_class_s(class_id)

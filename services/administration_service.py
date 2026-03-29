@@ -116,3 +116,36 @@ def push_user(user_id, title, body):
             "total": len(subs),
             "target": f"USER #{user_id}"
         }
+    
+def delete_class_s(class_id):
+    with get_db() as conn:
+        cursor = conn.cursor()
+
+        cursor.execute("SELECT COUNT(id) AS student_count FROM users WHERE class = ?", (class_id,))
+        count_row = cursor.fetchone()
+        if not count_row:
+            raise HTTPException(status_code=404, detail="Class not found")
+
+        if count_row[0] > 0:
+            cursor.execute("""
+                SELECT id, firstname, lastname, username 
+                FROM users 
+                WHERE class = ?
+            """, (class_id,))
+            all_students = [dict(row) for row in cursor.fetchall()]
+            
+            raise HTTPException(
+                status_code=409,
+                detail=[
+                    {
+                        "message": "Class has users assigned, cannot delete",
+                        "users": all_students
+                    }
+                ]
+            )
+
+        cursor.execute("DELETE FROM classes WHERE id = ?", (class_id,))
+        if cursor.rowcount == 0:
+            raise HTTPException(status_code=404, detail="Class not found")
+        conn.commit()
+        return {"status": "success"}

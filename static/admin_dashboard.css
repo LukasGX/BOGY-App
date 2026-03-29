@@ -71,6 +71,10 @@ body {
 	margin-bottom: 1rem;
 }
 
+.fat {
+	font-weight: bold;
+}
+
 header {
 	background: var(--bg);
 	padding: 0.6rem;
@@ -121,6 +125,34 @@ button:hover {
 	background-color: var(--primary-hover);
 }
 
+button.destructive {
+	background-color: var(--urgent);
+}
+
+button.destructive:hover {
+	background-color: #a71d2a;
+}
+
+input {
+	padding: 0.5rem;
+	border: 1px solid var(--border);
+	border-radius: 8px;
+	width: 100%;
+	font-size: 1rem;
+	margin-bottom: 0.5rem;
+	transition: 225ms ease;
+}
+
+input:focus {
+	outline: none;
+	border-color: var(--primary);
+	box-shadow: 0 0 0 2px rgba(0, 85, 148, 0.2);
+}
+
+input:hover {
+	border-color: var(--primary-hover);
+}
+
 main {
 	padding: 1rem;
 	display: grid;
@@ -154,7 +186,7 @@ main > div {
 	padding: 1rem;
 }
 
-.class-card {
+.element-card {
 	background-color: rgba(0, 0, 0, 0.06);
 	padding: 0.3rem 1rem;
 	border-radius: 8px;
@@ -168,17 +200,29 @@ main > div {
 	cursor: pointer;
 }
 
-.class-card:hover {
+.element-card:hover {
 	background-color: rgba(0, 0, 0, 0.1);
 	border: 1px solid rgba(0, 0, 0, 0.2) !important;
 }
 
-.class-card.add-class {
+.element-card.add-element {
 	border: 1px dashed rgba(0, 0, 0, 0.3);
 	justify-content: center;
 }
 
-.class-card span:first-of-type {
+.element-card span:first-of-type {
 	font-size: 1.2rem;
 	font-weight: bold;
+}
+
+.element-card.mini {
+	padding: 0.2rem 0.5rem;
+	width: fit-content;
+}
+
+.element-card-mini-container {
+	display: flex;
+	gap: 0.5rem;
+	flex-wrap: wrap;
+	margin-bottom: 1rem;
 }

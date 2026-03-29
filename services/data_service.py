@@ -43,3 +43,55 @@ def get_classes_s(session_data):
         classes = cursor.fetchall()
 
         return {"classes": classes}
+    
+def get_class_s(class_id, session_data):
+    with get_db() as conn:
+        cursor = conn.cursor()
+
+        cursor.execute("""
+            SELECT
+                c.id,
+                c.name,
+                COUNT(u.id) AS student_count
+            FROM classes c
+            LEFT JOIN users u
+                ON u.class = c.id
+            AND u.role = 1
+            WHERE c.id = ?
+            GROUP BY c.id, c.name
+            ORDER BY c.name ASC;
+        """, (class_id,))
+        class_info = cursor.fetchone()
+        if not class_info:
+            return {"error": "Class not found"}
+        
+        cursor.execute("""
+            SELECT
+                id,
+                username,
+                firstname,
+                lastname
+            FROM users
+            WHERE class = ? AND role = 1
+            ORDER BY lastname ASC
+            LIMIT 50;
+        """, (class_id,))
+        students = cursor.fetchall()
+
+        return {
+            "class": class_info,
+            "students": students
+        }
+    
+def update_class_s(class_id, new_name):
+    with get_db() as conn:
+        cursor = conn.cursor()
+
+        cursor.execute("SELECT id FROM classes WHERE id = ?", (class_id,))
+        if not cursor.fetchone():
+            return {"error": "Class not found"}
+
+        cursor.execute("UPDATE classes SET name = ? WHERE id = ?", (new_name, class_id))
+        conn.commit()
+
+        return {"success": True}

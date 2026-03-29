@@ -32,7 +32,10 @@
 				</div>
 				<div class="app-body">
 					{% for class in classes %}
-					<div class="class-card" id="class-{{ class.id }}">
+					<div
+						class="element-card"
+						id="class-{{ class.id }}"
+						onclick="clickOnClassCard('class-{{ class.id }}')">
 						<span>{{ class.name }}</span>
 						<span>Schüler: {{ class.student_count }}</span>
 					</div>
