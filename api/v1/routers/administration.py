@@ -15,7 +15,7 @@ router = APIRouter()
 async def create_user(request: Request, payload: CreateUserRequest, session_data: dict = Depends(require_role(4))):
     return create_user_s(payload)
 
-@router.post("/create_class")
+@router.put("/class")
 @sl_limiter.limit("1000/hour")
 async def create_class(request: Request, payload: CreateClassRequest, session_data: dict = Depends(require_role(4))):
     return create_class_s(payload)

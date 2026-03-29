@@ -139,6 +139,42 @@ async function clickOnClassCard(id) {
 	};
 }
 
+function addClass() {
+	closeModal();
+
+	openModal(`
+		<h2>Klasse erstellen</h2>
+		<label for="class-name-input">Klassenname:</label>
+		<input type="text" id="class-name-input" />
+		<button id="create-class-btn">Klasse erstellen</button>
+	`);
+
+	document.getElementById("create-class-btn").onclick = async () => {
+		const className = document.getElementById("class-name-input").value;
+
+		const response = await fetch("/api/v1/administration/class", {
+			method: "PUT",
+			headers: {
+				"Content-Type": "application/json"
+			},
+			body: JSON.stringify({
+				className: className
+			})
+		});
+
+		if (response.ok) {
+			window.location.reload();
+		} else {
+			closeModal();
+			openModal(`
+				<h2>Fehler beim Erstellen der Klasse</h2>
+				<p>Es ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.</p>
+				<button onclick="addClass()">OK</button>
+			`);
+		}
+	};
+}
+
 btnDetailsClasses.onclick = async () => {
 	const response = await fetch("/api/v1/data/get-classes");
 	const data = await response.json();
@@ -159,6 +195,10 @@ btnDetailsClasses.onclick = async () => {
         <h2>Klassen - Details</h2>
 		<div id="classes-container">
 			${classes}
+			<div class="element-card add-element" id="add-class-card">
+				<span>+</span>
+				<span>Klasse erstellen</span>
+			</div>
 		</div>
     `);
 
@@ -167,6 +207,12 @@ btnDetailsClasses.onclick = async () => {
 		.addEventListener("click", (e) => {
 			if (e.target.closest(".element-card")) {
 				const id = e.target.closest(".element-card").id;
+
+				if (id == "add-class-card") {
+					addClass();
+					return;
+				}
+
 				clickOnClassCard(id);
 			}
 		});

@@ -11,7 +11,7 @@ class CreateUserRequest(BaseModel):
     class_id: Optional[int] = Field(None, alias="class", ge=0, le=9999)
 
 class CreateClassRequest(BaseModel):
-    name: str = Field(..., max_length=50)
+    name: str = Field(..., max_length=50, alias="className")
 
 class PushSubscription(BaseModel):
     endpoint: str = Field(..., max_length=500)
