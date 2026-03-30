@@ -29,3 +29,18 @@ async def get_class(request: Request, class_id: int, session_data: dict = Depend
 @sl_limiter.limit("10/minute")
 async def update_class(request: Request, class_id: int, new_name: str = Body(embed=True), session_data: dict = Depends(LoggedIn)):
     return update_class_s(class_id, new_name)
+
+@router.get("/get-users")
+@sl_limiter.limit("1/second")
+async def get_users(request: Request, session_data: dict = Depends(LoggedIn)):
+    return get_users_s()
+
+@router.get("/user/{user_id}")
+@sl_limiter.limit("1/second")
+async def get_user(request: Request, user_id: int, session_data: dict = Depends(LoggedIn)):
+    return get_user_s(user_id)
+
+@router.get("/roles")
+@sl_limiter.limit("1/second")
+async def get_roles(request: Request, session_data: dict = Depends(LoggedIn)):
+    return get_roles_s()

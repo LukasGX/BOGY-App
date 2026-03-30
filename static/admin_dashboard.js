@@ -28,6 +28,7 @@ function closeModal() {
 
 // get btns
 const btnDetailsClasses = document.getElementById("btn-details-classes");
+const btnDetailsUsers = document.getElementById("btn-details-users");
 
 async function clickOnClassCard(id) {
 	closeModal();
@@ -47,7 +48,7 @@ async function clickOnClassCard(id) {
 			${data.students
 				.map(
 					(student) =>
-						`<div class="element-card mini">
+						`<div class="element-card mini mini-user-card">
 							<span>${student.username}</span>
 							<span>${student.firstname} ${student.lastname}</span>
 						</div>`
@@ -117,15 +118,17 @@ async function clickOnClassCard(id) {
 				<h2>Fehler beim Löschen der Klasse</h2>
 				<p>Die Klasse kann nicht gelöscht werden, da noch Benutzer der Klasse zugeordnet sind. Bitte entfernen Sie zuerst alle Schüler aus der Klasse.</p>
 				<p>Betroffene Nutzer:</p>
-				${data.detail[0].users
-					.map(
-						(user) =>
-							`<div class="element-card mini">
-								<span>${user.username}</span>
-								<span>${user.firstname} ${user.lastname}</span>
-							</div>`
-					)
-					.join("")}
+				<div class="element-card-mini-container">
+					${data.detail[0].users
+						.map(
+							(user) =>
+								`<div class="element-card mini mini-user-card">
+									<span>${user.username}</span>
+									<span>${user.firstname} ${user.lastname}</span>
+								</div>`
+						)
+						.join("")}
+				</div>
 			`);
 			} else {
 				closeModal();
@@ -183,9 +186,10 @@ btnDetailsClasses.onclick = async () => {
 	let ids = [];
 	data.classes.forEach((cls) => {
 		classes += `
-			<div class="element-card" id="class-${cls.id}">
+			<div class="element-card class-card" id="class-${cls.id}">
 				<span>${cls.name}</span>
 				<span>Schüler: ${cls.student_count}</span>
+				<span>Andere Benutzer: ${cls.others_count}</span>
 			</div>
 		`;
 		ids.push(`class-${cls.id}`);
@@ -214,6 +218,115 @@ btnDetailsClasses.onclick = async () => {
 				}
 
 				clickOnClassCard(id);
+			}
+		});
+};
+
+async function clickOnUserCard(id) {
+	closeModal();
+
+	const userId = id.split("-")[1];
+
+	const response = await fetch(`/api/v1/data/user/${userId}`);
+	const data = await response.json();
+
+	const rolesResponse = await fetch("/api/v1/data/roles");
+	const rolesData = await rolesResponse.json();
+
+	const classesResponse = await fetch("/api/v1/data/get-classes");
+	const classesData = await classesResponse.json();
+
+	openModal(`
+		<h2>Benutzer ${data.user.username} - Details</h2>
+		<label for="role">Rolle:</label>
+		<select id="roleSelect">
+			${rolesData.roles
+				.map(
+					(role) =>
+						`<option value="${role.id}" ${role.id == data.user.role_id ? "selected" : ""}>
+					${role.german_name}
+				</option>`
+				)
+				.join("")}
+		</select>
+		<label for="class">Klasse:</label>
+		<select id="classSelect">
+			<option value="">Keine Klasse</option>
+			${classesData.classes.map(
+				(cls) =>
+					`<option value="${cls.id}" ${
+						cls.id == data.user.class_id ? "selected" : ""
+					}>
+					${cls.name}
+				</option>`
+			)}
+		</select>
+		<label for="username">Benutzername:</label>
+		<input type="text" id="username" value="${data.user.username}" />
+		<label for="firstname">Vorname:</label>
+		<input type="text" id="firstname" value="${data.user.firstname}" />
+		<label for="lastname">Nachname:</label>
+		<input type="text" id="lastname" value="${data.user.lastname}" /><br /><br />
+		<button id="save-user-btn">Änderungen speichern</button>
+		<button id="reset-password-btn">Passwort zurücksetzen</button>
+		<button id="delete-user-btn" class="destructive">Benutzer löschen</button>
+	`);
+
+	setTimeout(() => {
+		new Choices("#roleSelect", {
+			searchEnabled: false,
+			itemSelectText: "",
+			removeItemButton: false,
+			shouldSort: false,
+			placeholderValue: "Auswählen...",
+			classNames: {
+				containerOuter: "choices"
+			}
+		});
+
+		new Choices("#classSelect", {
+			searchEnabled: false,
+			itemSelectText: "",
+			removeItemButton: false,
+			shouldSort: false,
+			placeholderValue: "Auswählen...",
+			classNames: {
+				containerOuter: "choices"
+			}
+		});
+	}, 50);
+}
+
+btnDetailsUsers.onclick = async () => {
+	const response = await fetch("/api/v1/data/get-users");
+	const data = await response.json();
+
+	let users = "";
+	let ids = [];
+	data.users.forEach((user) => {
+		users += `
+			<div class="element-card user-card" id="user-${user.id}">
+				<span>${user.username}</span>
+				<span>Rolle: ${user.german_role_name}</span>
+				<span>Klasse: ${user.class_name ? user.class_name : "Keine Klasse"}</span>
+			</div>
+		`;
+		ids.push(`user-${user.id}`);
+	});
+
+	openModal(`
+		<h2>Benutzer - Details</h2>
+		<div id="users-container">
+			${users}
+		</div>
+	`);
+
+	document
+		.getElementById("users-container")
+		.addEventListener("click", (e) => {
+			if (e.target.closest(".element-card")) {
+				const id = e.target.closest(".element-card").id;
+				clickOnUserCard(id);
 			}
 		});
 };

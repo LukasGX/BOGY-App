@@ -5,6 +5,11 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<title>BOGY-App Admin Dashboard</title>
 
+		<script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
+		<link
+			rel="stylesheet"
+			href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css" />
+
 		<link rel="stylesheet" href="/static/admin_dashboard.css" />
 		<link
 			rel="shortcut icon"
@@ -33,11 +38,30 @@
 				<div class="app-body">
 					{% for class in classes %}
 					<div
-						class="element-card"
+						class="element-card class-card"
 						id="class-{{ class.id }}"
 						onclick="clickOnClassCard('class-{{ class.id }}')">
 						<span>{{ class.name }}</span>
 						<span>Schüler: {{ class.student_count }}</span>
+						<span>Andere Benutzer: {{ class.others_count }}</span>
+					</div>
+					{% endfor %}
+				</div>
+			</div>
+			<div>
+				<div class="app-head">
+					Benutzer
+					<button id="btn-details-users">Details</button>
+				</div>
+				<div class="app-body">
+					{% for user in users %}
+					<div
+						class="element-card user-card"
+						id="user-{{ user.id }}"
+						onclick="clickOnUserCard('user-{{ user.id }}')">
+						<span>{{ user.username }}</span>
+						<span>Rolle: {{ user.german_role_name }}</span>
+						<span>Klasse: {{ user.class_name }}</span>
 					</div>
 					{% endfor %}
 				</div>

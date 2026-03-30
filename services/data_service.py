@@ -32,11 +32,10 @@ def get_classes_s(session_data):
             SELECT
                 c.id,
                 c.name,
-                COUNT(u.id) AS student_count
+                COUNT(CASE WHEN u.role = 1 THEN 1 END) AS student_count,
+                COUNT(CASE WHEN u.role != 1 THEN 1 END) AS others_count
             FROM classes c
-            LEFT JOIN users u
-                ON u.class = c.id
-            AND u.role = 1
+            LEFT JOIN users u ON u.class = c.id
             GROUP BY c.id, c.name
             ORDER BY c.name ASC;
         """)
@@ -95,3 +94,64 @@ def update_class_s(class_id, new_name):
         conn.commit()
 
         return {"success": True}
+    
+def get_users_s():
+    with get_db() as conn:
+        cursor = conn.cursor()
+
+        cursor.execute("""
+            SELECT
+                u.id,
+                u.username,
+                u.firstname,
+                u.lastname,
+                r.name AS role_name,
+                r.german_name AS german_role_name,
+                c.name AS class_name
+            FROM users u
+            LEFT JOIN classes c ON u.class = c.id
+            LEFT JOIN roles r ON u.role = r.id
+            ORDER BY 
+                u.role ASC,
+                u.lastname ASC,
+                u.firstname ASC
+            LIMIT 100;
+        """)
+        users = cursor.fetchall()
+
+        return {"users": users}
+    
+def get_user_s(user_id):
+    with get_db() as conn:
+        cursor = conn.cursor()
+
+        cursor.execute("""
+            SELECT
+                u.id,
+                u.username,
+                u.firstname,
+                u.lastname,
+                r.id AS role_id,
+                r.name AS role_name,
+                r.german_name AS german_role_name,
+                c.id AS class_id,
+                c.name AS class_name
+            FROM users u
+            LEFT JOIN classes c ON u.class = c.id
+            LEFT JOIN roles r ON u.role = r.id
+            WHERE u.id = ?
+        """, (user_id,))
+        user = cursor.fetchone()
+        if not user:
+            return {"error": "User not found"}
+
+        return {"user": user}
+    
+def get_roles_s():
+    with get_db() as conn:
+        cursor = conn.cursor()
+
+        cursor.execute("SELECT id, name, german_name FROM roles ORDER BY id ASC")
+        roles = cursor.fetchall()
+
+        return {"roles": roles}

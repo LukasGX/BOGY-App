@@ -58,7 +58,8 @@ def init_db():
             """
             CREATE TABLE IF NOT EXISTS roles (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                name TEXT UNIQUE NOT NULL
+                name TEXT UNIQUE NOT NULL,
+                german_name TEXT UNIQUE NOT NULL
             )
             """
         )
@@ -160,8 +161,14 @@ def init_db():
             cursor.execute("INSERT OR IGNORE INTO subjects(name) VALUES(?)", (s,))
         
         roles = ["student", "teacher", "parent", "administration"]
-        for r in roles:
-            cursor.execute("INSERT OR IGNORE INTO roles(name) VALUES(?)", (r,))
+        roles = {
+            "student": "Schüler",
+            "teacher": "Lehrer",
+            "parent": "Elternteil",
+            "administration": "Verwaltung"
+        }
+        for r in roles.keys():
+            cursor.execute("INSERT OR IGNORE INTO roles(name, german_name) VALUES(?, ?)", (r, roles[r],))
         conn.commit()
 
 
