@@ -10,10 +10,10 @@ def create_user_s(payload):
     with get_db() as conn:
         cursor = conn.cursor()
         # find role id
-        cursor.execute("SELECT id FROM roles WHERE name = ?", (payload.role,))
+        cursor.execute("SELECT id FROM roles WHERE id = ?", (payload.role,))
         role_row = cursor.fetchone()
         if not role_row:
-            raise HTTPException(status_code=400, detail="Invalid role")
+            raise HTTPException(status_code=400, detail=f"Invalid role: {payload.role}")
         role_id = role_row["id"]
         # validate class id if provided
         class_id = payload.class_id
@@ -22,7 +22,11 @@ def create_user_s(payload):
             if not cursor.fetchone():
                 raise HTTPException(status_code=400, detail="Invalid class")
         # hash password
-        hashed = hash_password(payload.password)
+        if (payload.password is None):
+            pw = secrets.token_hex(8)
+            hashed = hash_password(pw)
+        else:
+            hashed = hash_password(payload.password)
         try:
             cursor.execute(
                 "INSERT INTO users(username, firstname, lastname, password, role, class) VALUES(?,?,?,?,?,?)",
@@ -32,7 +36,7 @@ def create_user_s(payload):
             user_id = cursor.lastrowid
         except sqlite3.IntegrityError:
             raise HTTPException(status_code=400, detail="Username already exists")
-        return {"id": user_id, "username": payload.username, "role": payload.role}
+        return {"id": user_id, "username": payload.username, "role": payload.role, "password": pw if payload.password is None else "Provided by user"}
     
 def create_class_s(payload):
     with get_db() as conn:

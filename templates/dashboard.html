@@ -61,7 +61,10 @@
 						onclick="clickOnUserCard('user-{{ user.id }}')">
 						<span>{{ user.username }}</span>
 						<span>Rolle: {{ user.german_role_name }}</span>
-						<span>Klasse: {{ user.class_name }}</span>
+						<span
+							>Klasse: {{ user.class_name or "Keine Klasse"
+							}}</span
+						>
 					</div>
 					{% endfor %}
 				</div>

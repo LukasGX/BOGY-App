@@ -10,7 +10,7 @@ from definitions import sl_limiter, VAPID_PRIVATE_KEY, VAPID_EMAIL
 
 router = APIRouter()
 
-@router.post("/create_user")
+@router.put("/user")
 @sl_limiter.limit("1000/hour")
 async def create_user(request: Request, payload: CreateUserRequest, session_data: dict = Depends(require_role(4))):
     return create_user_s(payload)
