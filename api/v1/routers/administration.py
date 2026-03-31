@@ -40,3 +40,13 @@ async def send_push_user(
 @sl_limiter.limit("10/minute")
 async def delete_class(request: Request, class_id: int, session_data: dict = Depends(require_role(4))):
     return delete_class_s(class_id)
+
+@router.delete("/user/{user_id}")
+@sl_limiter.limit("10/minute")
+async def delete_user(request: Request, user_id: int, session_data: dict = Depends(require_role(4))):
+    return delete_user_s(user_id)
+
+@router.post("/user/{user_id}/reset-pw")
+@sl_limiter.limit("10/minute")
+async def reset_user_password(request: Request, user_id: int, session_data: dict = Depends(require_role(4))):
+    return reset_user_password_s(user_id)

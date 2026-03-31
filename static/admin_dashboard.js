@@ -251,7 +251,7 @@ async function clickOnUserCard(id) {
 		</select>
 		<label for="class">Klasse:</label>
 		<select id="classSelect">
-			<option value="">Keine Klasse</option>
+			<option value="0">Keine Klasse</option>
 			${classesData.classes.map(
 				(cls) =>
 					`<option value="${cls.id}" ${
@@ -295,6 +295,95 @@ async function clickOnUserCard(id) {
 			}
 		});
 	}, 50);
+
+	document.getElementById("save-user-btn").onclick = async () => {
+		const newRole = document.getElementById("roleSelect").value;
+		const newClass = document.getElementById("classSelect").value;
+		const newUsername = document.getElementById("username").value;
+		const newFirstname = document.getElementById("firstname").value;
+		const newLastname = document.getElementById("lastname").value;
+
+		const response = await fetch(`/api/v1/data/user/${userId}`, {
+			method: "PATCH",
+			headers: {
+				"Content-Type": "application/json"
+			},
+			body: JSON.stringify({
+				new_role: newRole,
+				new_class: newClass,
+				new_username: newUsername,
+				new_firstname: newFirstname,
+				new_lastname: newLastname
+			})
+		});
+
+		if (response.ok) {
+			window.location.reload();
+		} else {
+			closeModal();
+			openModal(`
+				<h2>Fehler beim Ändern der Benutzerdaten</h2>
+				<p>Es ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.</p>
+				<button onclick="clickOnUserCard('user-${userId}')">OK</button>
+			`);
+		}
+	};
+
+	document.getElementById("reset-password-btn").onclick = async () => {
+		const response = await fetch(
+			`/api/v1/administration/user/${userId}/reset-pw`,
+			{
+				method: "POST"
+			}
+		);
+
+		if (response.ok) {
+			const data = await response.json();
+			closeModal();
+			openModal(`
+				<h2>Passwort zurückgesetzt</h2>
+				<p>Das Passwort wurde erfolgreich zurückgesetzt.<br />Das neue Passwort lautet: <span class="fat">${data.new_password}</span></p>
+				<button onclick="clickOnUserCard('user-${userId}')">OK</button>
+			`);
+		} else {
+			closeModal();
+			openModal(`
+				<h2>Fehler beim Zurücksetzen des Passworts</h2>
+				<p>Es ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.</p>
+				<button onclick="clickOnUserCard('user-${userId}')">OK</button>
+			`);
+		}
+	};
+
+	document.getElementById("delete-user-btn").onclick = async () => {
+		closeModal();
+		openModal(`
+			<h2>Benutzer löschen</h2>
+			<p>Sind Sie sicher, dass Sie diesen Benutzer löschen möchten?</p>
+			<button id="confirm-delete-btn" class="destructive">Ja, Benutzer löschen</button>
+			<button onclick="clickOnUserCard('user-${userId}')">Abbrechen</button>
+		`);
+
+		document.getElementById("confirm-delete-btn").onclick = async () => {
+			const response = await fetch(
+				`/api/v1/administration/user/${userId}`,
+				{
+					method: "DELETE"
+				}
+			);
+
+			if (response.ok) {
+				window.location.reload();
+			} else {
+				closeModal();
+				openModal(`
+					<h2>Fehler beim Löschen des Benutzers</h2>
+					<p>Es ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.</p>
+					<button onclick="clickOnUserCard('user-${userId}')">OK</button>
+				`);
+			}
+		};
+	};
 }
 
 btnDetailsUsers.onclick = async () => {

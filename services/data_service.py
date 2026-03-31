@@ -147,6 +147,19 @@ def get_user_s(user_id):
 
         return {"user": user}
     
+def update_user_s(user_id, new_role, new_class, new_username, new_firstname, new_lastname):
+    with get_db() as conn:
+        cursor = conn.cursor()
+
+        cursor.execute("SELECT id FROM users WHERE id = ?", (user_id,))
+        if not cursor.fetchone():
+            return {"error": "User not found"}
+
+        cursor.execute("UPDATE users SET role = ?, class = ?, username = ?, firstname = ?, lastname = ? WHERE id = ?", (new_role, new_class, new_username, new_firstname, new_lastname, user_id))
+        conn.commit()
+
+        return {"success": True}
+    
 def get_roles_s():
     with get_db() as conn:
         cursor = conn.cursor()

@@ -1,4 +1,5 @@
 import json
+import secrets
 import sqlite3
 from fastapi import HTTPException
 import webpush
@@ -149,3 +150,26 @@ def delete_class_s(class_id):
             raise HTTPException(status_code=404, detail="Class not found")
         conn.commit()
         return {"status": "success"}
+    
+def delete_user_s(user_id):
+    with get_db() as conn:
+        cursor = conn.cursor()
+
+        cursor.execute("DELETE FROM users WHERE id = ?", (user_id,))
+        if cursor.rowcount == 0:
+            raise HTTPException(status_code=404, detail="User not found")
+        conn.commit()
+        return {"status": "success"}
+    
+def reset_user_password_s(user_id):
+    with get_db() as conn:
+        cursor = conn.cursor()
+
+        new_password = secrets.token_hex(8)
+        hashed = hash_password(new_password)
+
+        cursor.execute("UPDATE users SET password = ? WHERE id = ?", (hashed, user_id))
+        if cursor.rowcount == 0:
+            raise HTTPException(status_code=404, detail="User not found")
+        conn.commit()
+        return {"status": "success", "new_password": new_password}
