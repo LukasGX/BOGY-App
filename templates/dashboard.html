@@ -69,6 +69,23 @@
 					{% endfor %}
 				</div>
 			</div>
+			<div>
+				<div class="app-head">
+					WLAN-Codes
+					<button id="btn-details-users">Details</button>
+				</div>
+				<div class="app-body">
+					{% for code in wlan_codes %}
+					<div
+						class="element-card wlan-code-card"
+						id="wlan-code-{{ code.id }}"
+						onclick="clickOnUserCard('wlan-code-{{ code.id }}')">
+						<span>{{ code.code }}</span>
+						<span>Ablaufdatum: {{ code.expiry_formatted }}</span>
+					</div>
+					{% endfor %}
+				</div>
+			</div>
 		</main>
 
 		<script src="/static/admin_dashboard.js"></script>

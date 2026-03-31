@@ -269,3 +269,6 @@ main > div {
 .mini-user-card {
 	grid-template-columns: repeat(2, 1fr);
 }
+.element-card.wlan-code-card {
+	grid-template-columns: repeat(2, 1fr);
+}
