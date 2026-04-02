@@ -49,3 +49,13 @@ async def update_user(request: Request, user_id: int, new_role: int = Body(embed
 @sl_limiter.limit("1/second")
 async def get_roles(request: Request, session_data: dict = Depends(LoggedIn)):
     return get_roles_s()
+
+@router.get("/wlan-code/{code_id}")
+@sl_limiter.limit("1/second")
+async def get_wlan_code(request: Request, code_id: int, session_data: dict = Depends(LoggedIn)):
+    return get_wlan_code_s(code_id)
+
+@router.patch("/wlan-code/{code_id}")
+@sl_limiter.limit("1/second")
+async def update_wlan_code(request: Request, code_id: int, session_data: dict = Depends(LoggedIn)):
+    return update_wlan_code_s(code_id)

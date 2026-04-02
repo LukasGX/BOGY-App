@@ -72,14 +72,14 @@
 			<div>
 				<div class="app-head">
 					WLAN-Codes
-					<button id="btn-details-users">Details</button>
+					<button id="btn-details-wlan-codes">Details</button>
 				</div>
 				<div class="app-body">
 					{% for code in wlan_codes %}
 					<div
 						class="element-card wlan-code-card"
-						id="wlan-code-{{ code.id }}"
-						onclick="clickOnUserCard('wlan-code-{{ code.id }}')">
+						id="wlancode-{{ code.id }}"
+						onclick="clickOnWlanCodeCard('wlancode-{{ code.id }}')">
 						<span>{{ code.code }}</span>
 						<span>Ablaufdatum: {{ code.expiry_formatted }}</span>
 					</div>

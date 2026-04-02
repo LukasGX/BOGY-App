@@ -29,6 +29,7 @@ function closeModal() {
 // get btns
 const btnDetailsClasses = document.getElementById("btn-details-classes");
 const btnDetailsUsers = document.getElementById("btn-details-users");
+const btnDetailsWlanCodes = document.getElementById("btn-details-wlan-codes");
 
 async function clickOnClassCard(id) {
 	closeModal();
@@ -533,6 +534,213 @@ btnDetailsUsers.onclick = async () => {
 				}
 
 				clickOnUserCard(id);
+			}
+		});
+};
+
+async function clickOnWlanCodeCard(id) {
+	closeModal();
+
+	const codeId = id.split("-")[1];
+
+	const response = await fetch(`/api/v1/data/wlan-code/${codeId}`);
+	const data = await response.json();
+
+	const expiryDate = new Date(data.code.expiry.replace("Z", "+00:00"));
+
+	const userIds = data.code.user_ids.split(";");
+	let users;
+	if (userIds.includes("all")) {
+		users = "Alle Benutzer";
+	} else {
+		users = [];
+		for (const user_id of userIds) {
+			const response = await fetch(`/api/v1/data/user/${user_id}`);
+			const userData = await response.json();
+			users.push({
+				username: userData.user.username,
+				firstname: userData.user.firstname,
+				lastname: userData.user.lastname
+			});
+		}
+	}
+
+	let usersView = "";
+	if (users === "Alle Benutzer") {
+		usersView = "<p>Benutzer: Alle Benutzer</p>";
+	} else {
+		usersView = "Benutzer: <div class='element-card-mini-container'>";
+		users.forEach((user) => {
+			usersView += `
+				<div class="element-card mini mini-user-card">
+					<span>${user.username}</span>
+					<span>${user.firstname} ${user.lastname}</span>
+				</div>
+			`;
+		});
+		usersView += "</div>";
+	}
+
+	openModal(`
+		<h2>WLAN-Code ${data.code.code} - Details</h2>
+		<p>Code: ${data.code.code}</p>
+		<label for="expiry">Ablaufdatum:</label>
+		<input type="datetime-local" id="expiry" value="${expiryDate
+			.toISOString()
+			.slice(0, 16)}" />
+		${usersView}
+		<button id="save-code-btn">Änderungen speichern</button>
+		<button id="delete-code-btn" class="destructive">WLAN-Code löschen</button>
+	`);
+
+	document.getElementById("save-code-btn").onclick = async () => {
+		const newExpiry = document.getElementById("expiry").value;
+
+		const response = await fetch(`/api/v1/data/wlan-code/${codeId}`, {
+			method: "PATCH",
+			headers: {
+				"Content-Type": "application/json"
+			},
+			body: JSON.stringify({
+				new_expiry: newExpiry
+			})
+		});
+
+		if (response.ok) {
+			window.location.reload();
+		} else {
+			closeModal();
+			openModal(`
+				<h2>Fehler beim Ändern des WLAN-Codes</h2>
+				<p>Es ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.</p>
+				<button onclick="clickOnWlanCodeCard('wlancode-${codeId}')">OK</button>
+			`);
+		}
+	};
+}
+
+async function addWlanCode() {
+	closeModal();
+
+	const response = await fetch("/api/v1/data/get-users");
+	const data = await response.json();
+
+	openModal(`
+		<h2>WLAN-Code erstellen</h2>
+		<label for="code">Code:</label>
+		<input type="text" id="code" />
+		<label for="expiry">Ablaufdatum:</label>
+		<input type="datetime-local" id="expiry" />
+		<select id="userSelect" multiple>
+			<option value="all">Alle Benutzer</option>
+			${data.users
+				.map(
+					(user) =>
+						`<option value="${user.id}">
+					${user.username} (${user.firstname} ${user.lastname})
+				</option>`
+				)
+				.join("")}
+		</select>
+		<button id="create-code-btn">WLAN-Code erstellen</button>
+	`);
+
+	setTimeout(() => {
+		new Choices("#userSelect", {
+			searchEnabled: true,
+			itemSelectText: "",
+			removeItemButton: true,
+			shouldSort: false,
+			placeholderValue: "Auswählen...",
+			classNames: {
+				containerOuter: "choices"
+			}
+		});
+	}, 50);
+
+	document.getElementById("create-code-btn").onclick = async () => {
+		const code = document.getElementById("code").value;
+		const expiry = document.getElementById("expiry").value;
+		const selectedUsers = Array.from(
+			document.getElementById("userSelect").selectedOptions
+		)
+			.map((option) => option.value)
+			.join(";");
+
+		const response = await fetch("/api/v1/administration/wlan-code", {
+			method: "PUT",
+			headers: {
+				"Content-Type": "application/json"
+			},
+			body: JSON.stringify({
+				code: code,
+				expiry: expiry,
+				user_ids: selectedUsers
+			})
+		});
+
+		if (response.ok) {
+			window.location.reload();
+		} else {
+			closeModal();
+			openModal(`
+				<h2>Fehler beim Erstellen des WLAN-Codes</h2>
+				<p>Es ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.</p>
+				<button onclick="addWlanCode()">OK</button>
+			`);
+		}
+	};
+}
+
+btnDetailsWlanCodes.onclick = async () => {
+	const response = await fetch("/api/v1/wlan/");
+	const data = await response.json();
+
+	let codes = "";
+	data.codes.forEach((code) => {
+		let expiry_str = code.expiry.replace("Z", "+00:00");
+		let dt = new Date(expiry_str);
+		let expiry = dt
+			.toLocaleString("de-DE", {
+				day: "2-digit",
+				month: "2-digit",
+				year: "numeric",
+				hour: "2-digit",
+				minute: "2-digit"
+			})
+			.replace(",", " ");
+
+		codes += `
+			<div class="element-card wlan-code-card" id="wlancode-${code.id}">
+				<span>${code.code}</span>
+				<span>Gültig bis: ${expiry}</span>
+			</div>
+		`;
+	});
+
+	openModal(`
+		<h2>WLAN-Codes - Details</h2>
+		<div id="wlan-codes-container">
+			${codes}
+			<div class="element-card wlan-code-card add-element" id="add-wlancode-card">
+				<span>+</span>
+				<span>WLAN-Code erstellen</span>
+			</div>
+		</div>
+	`);
+
+	document
+		.getElementById("wlan-codes-container")
+		.addEventListener("click", (e) => {
+			if (e.target.closest(".element-card")) {
+				const id = e.target.closest(".element-card").id;
+
+				if (id == "add-wlancode-card") {
+					addWlanCode();
+					return;
+				}
+
+				clickOnWlanCodeCard(id);
 			}
 		});
 };

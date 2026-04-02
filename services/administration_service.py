@@ -177,3 +177,12 @@ def reset_user_password_s(user_id):
             raise HTTPException(status_code=404, detail="User not found")
         conn.commit()
         return {"status": "success", "new_password": new_password}
+    
+def add_wlan_code_s(users, code, expiry):
+    with get_db() as conn:
+        cursor = conn.cursor()
+
+        cursor.execute("INSERT INTO wlan_codes (user_ids, code, expiry) VALUES (?, ?, ?)", (users, code, expiry),)
+        conn.commit()
+
+        return {"status": "success", "code":{"code": code, "users": users, "expiry": expiry}}

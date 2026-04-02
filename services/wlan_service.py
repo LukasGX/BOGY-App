@@ -16,7 +16,7 @@ def get_wlan_codes(session_data):
 
         cursor.execute(
             """
-            SELECT code, expiry FROM wlan_codes
+            SELECT id, code, expiry FROM wlan_codes
             WHERE (user_ids = 'all' OR user_ids = ? OR user_ids LIKE ? OR user_ids LIKE ? OR user_ids LIKE ?)
             AND expiry > CURRENT_TIMESTAMP
             """,
@@ -25,7 +25,7 @@ def get_wlan_codes(session_data):
 
         codes = []
         for row in cursor.fetchall():
-            codes.append({"code": row["code"], "expiry": row["expiry"]})
+            codes.append({"code": row["code"], "expiry": row["expiry"], "id": row["id"]})
 
         return {"codes": codes}
     

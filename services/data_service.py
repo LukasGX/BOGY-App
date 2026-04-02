@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta
 from api.v1.deps import get_db, hash_password
 
 def get_subjects_s(session_data):
@@ -168,3 +169,33 @@ def get_roles_s():
         roles = cursor.fetchall()
 
         return {"roles": roles}
+    
+def get_wlan_code_s(code_id):
+    with get_db() as conn:
+        cursor = conn.cursor()
+
+        cursor.execute("SELECT id, code, user_ids, expiry FROM wlan_codes WHERE id = ?", (code_id,))
+        code = cursor.fetchone()
+        if not code:
+            return {"error": "WLAN code not found"}
+        
+        code_dict = dict(code)
+        
+        code_dict["user_ids"] = str(code_dict["user_ids"])
+
+        return {"code": code_dict}
+    
+def update_wlan_code_s(code_id):
+    with get_db() as conn:
+        cursor = conn.cursor()
+
+        cursor.execute("SELECT id, code, user_ids, expiry FROM wlan_codes WHERE id = ?", (code_id,))
+        code = cursor.fetchone()
+        if not code:
+            return {"error": "WLAN code not found"}
+        
+        new_expiry = datetime.now() + timedelta(days=7)
+        cursor.execute("UPDATE wlan_codes SET expiry = ? WHERE id = ?", (new_expiry, code_id))
+        conn.commit()
+
+        return {"success": True, "new_expiry": new_expiry}
