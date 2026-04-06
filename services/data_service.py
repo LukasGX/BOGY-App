@@ -52,11 +52,15 @@ def get_class_s(class_id, session_data):
             SELECT
                 c.id,
                 c.name,
-                COUNT(u.id) AS student_count
+                COUNT(u.id) AS student_count,
+                COUNT(u2.id) AS others_count
             FROM classes c
             LEFT JOIN users u
                 ON u.class = c.id
-            AND u.role = 1
+                AND u.role = 1
+            LEFT JOIN users u2
+                ON u2.class = c.id
+                AND NOT u2.role = 1
             WHERE c.id = ?
             GROUP BY c.id, c.name
             ORDER BY c.name ASC;
@@ -78,9 +82,23 @@ def get_class_s(class_id, session_data):
         """, (class_id,))
         students = cursor.fetchall()
 
+        cursor.execute("""
+            SELECT
+                id,
+                username,
+                firstname,
+                lastname
+            FROM users
+            WHERE class = ? AND NOT role = 1
+            ORDER BY lastname ASC
+            LIMIT 50;
+        """, (class_id,))
+        others = cursor.fetchall()
+
         return {
             "class": class_info,
-            "students": students
+            "students": students,
+            "others": others
         }
     
 def update_class_s(class_id, new_name):

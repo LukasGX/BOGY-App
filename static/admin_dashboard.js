@@ -45,17 +45,37 @@ async function clickOnClassCard(id) {
 		<input type="text" id="class-name-input" value="${data.class.name}" />
 
 		<span>Schüler:</span>
-		<div class="element-card-mini-container">
-			${data.students
-				.map(
-					(student) =>
-						`<div class="element-card mini mini-user-card">
+			${
+				data.student_count > 0
+					? `<div class="element-card-mini-container">` +
+						data.students
+							.map(
+								(student) =>
+									`<div class="element-card mini mini-user-card">
 							<span>${student.username}</span>
 							<span>${student.firstname} ${student.lastname}</span>
 						</div>`
-				)
-				.join("")}
-		</div>
+							)
+							.join("") +
+						`</div>`
+					: "Keine<br />"
+			}
+		<span>Andere Benutzer:</span>
+			${
+				data.others_count > 0
+					? `<div class="element-card-mini-container">` +
+						data.others
+							.map(
+								(other) =>
+									`<div class="element-card mini mini-user-card">
+							<span>${other.username}</span>
+							<span>${other.firstname} ${other.lastname}</span>
+						</div>`
+							)
+							.join("") +
+						`</div>`
+					: "Keine<br /><br />"
+			}
 		<button id="save-class-btn">Änderungen speichern</button>
 		<button id="delete-class-btn" class="destructive">Klasse löschen</button>
 	`);
