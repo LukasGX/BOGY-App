@@ -1,12 +1,9 @@
-import json
-import sqlite3
-from fastapi import APIRouter, Depends, Form, HTTPException, Request
+from fastapi import APIRouter, Depends, Request
 from fastapi.params import Body
-import webpush
-from api.v1.deps import get_db, hash_password, require_role
+from api.v1.deps import require_role
 from services.administration_service import *
 from payloads import CreateUserRequest, CreateClassRequest
-from definitions import sl_limiter, VAPID_PRIVATE_KEY, VAPID_EMAIL
+from definitions import sl_limiter
 
 router = APIRouter()
 
@@ -22,16 +19,16 @@ async def create_class(request: Request, payload: CreateClassRequest, session_da
     
 @router.post("/send-all")
 @sl_limiter.limit("10/hour")
-async def send_push_all(request: Request, title: str = Form(..., max_length=100), body: str = Form(..., max_length=800), session_data: dict = Depends(require_role(4))):
+async def send_push_all(request: Request, title: str = Body(..., max_length=100, embed=True), body: str = Body(..., max_length=800, embed=True), session_data: dict = Depends(require_role(4))):
     return push_all(title, body)
 
 @router.post("/send-user")
 @sl_limiter.limit("200/hour")
 async def send_push_user(
     request: Request,
-    user_id: int = Form(..., ge=0, le=9999), 
-    title: str = Form(..., max_length=100), 
-    body: str = Form(..., max_length=800), 
+    user_id: int = Body(..., ge=0, le=9999, embed=True), 
+    title: str = Body(..., max_length=100, embed=True), 
+    body: str = Body(..., max_length=800, embed=True), 
     session_data: dict = Depends(require_role(4))
 ):
     return push_user(user_id, title, body)

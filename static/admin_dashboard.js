@@ -828,3 +828,99 @@ btnDetailsWlanCodes.onclick = async () => {
 			}
 		});
 };
+
+// push
+document.getElementById("send-push").onclick = async () => {
+	const response = await fetch("/api/v1/data/get-users");
+	const data = await response.json();
+
+	openModal(`
+		<h2>Push-Benachrichtigung senden</h2>
+		<label for="push-title">Betreff:</label>
+		<input type="text" id="push-title" />
+		<label for="push-message">Nachricht:</label>
+		<textarea id="push-message"></textarea>
+		<div class="push-users-container">
+			<input type="checkbox" id="push-send-all" />
+			<label for="push-send-all">An alle Benutzer senden</label>
+			<div id="push-users-container">
+				<label for="push-users">Empfänger:</label>
+				<select id="push-users">
+					${data.users
+						.map(
+							(user) =>
+								`<option value="${user.id}">
+							${user.username} (${user.firstname} ${user.lastname})
+						</option>`
+						)
+						.join("")}
+				</select>
+			</div>
+		</div>
+		<button id="send-push-btn">Push-Benachrichtigung senden</button>
+	`);
+
+	setTimeout(() => {
+		new Choices("#push-users", {
+			searchEnabled: false,
+			itemSelectText: "",
+			removeItemButton: false,
+			shouldSort: false,
+			placeholderValue: "Auswählen...",
+			classNames: {
+				containerOuter: "choices"
+			}
+		});
+	}, 50);
+
+	document.getElementById("push-send-all").onchange = (e) => {
+		const pushUsersSelectContainer = document.getElementById(
+			"push-users-container"
+		);
+		if (e.target.checked) {
+			pushUsersSelectContainer.style.display = "none";
+		} else {
+			pushUsersSelectContainer.style.display = "block";
+		}
+	};
+
+	document.getElementById("send-push-btn").onclick = async () => {
+		const title = document.getElementById("push-title").value;
+		const message = document.getElementById("push-message").value;
+		const sendToAll = document.getElementById("push-send-all").checked;
+		const selectedUser = document.getElementById("push-users").value;
+
+		const response = await fetch(
+			sendToAll
+				? "/api/v1/administration/send-all"
+				: "/api/v1/administration/send-user",
+			{
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json"
+				},
+				body: JSON.stringify({
+					title: title,
+					body: message,
+					user_id: selectedUser
+				})
+			}
+		);
+
+		if (response.ok) {
+			closeModal();
+			openModal(`
+				<h2>Push-Benachrichtigung gesendet</h2>
+				<p>Die Push-Benachrichtigung wurde erfolgreich gesendet.</p>
+				<button onclick="closeModal()">OK</button>
+			`);
+		} else {
+			closeModal();
+			openModal(`
+				<h2>Fehler beim Senden der Push-Benachrichtigung</h2>
+				<p>Es ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.</p>
+				<button onclick="closeModal()">OK</button>
+			`);
+		}
+	};
+};

@@ -137,7 +137,8 @@ button.destructive:hover {
 	background-color: #a71d2a;
 }
 
-input {
+input:not([type="checkbox"]),
+textarea {
 	padding: 0.5rem;
 	border: 1px solid var(--border);
 	border-radius: 8px;
@@ -147,13 +148,15 @@ input {
 	transition: 225ms ease;
 }
 
-input:focus {
+input:not([type="checkbox"]):focus,
+textarea:focus {
 	outline: none;
 	border-color: var(--primary);
 	box-shadow: 0 0 0 2px rgba(0, 85, 148, 0.2);
 }
 
-input:hover {
+input:not([type="checkbox"]):hover,
+textarea:hover {
 	border-color: var(--primary-hover);
 }
 
@@ -183,12 +186,14 @@ input:hover {
 
 .choices__input {
 	padding: 0 !important;
-	background: transparent;
+	background: transparent !important;
+	border: none !important;
+	margin-bottom: 0 !important;
 }
 
 .choices__input:focus {
-	outline: none;
-	box-shadow: none;
+	outline: none !important;
+	box-shadow: none !important;
 }
 
 .choices__list--dropdown {
@@ -196,6 +201,14 @@ input:hover {
 	border-top: none !important;
 	border-radius: 0 0 8px 8px !important;
 	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+}
+
+.push-users-container {
+	margin: 0.5rem 0;
+}
+
+.push-users-container #push-users-container {
+	margin-top: 0.5rem;
 }
 
 main {

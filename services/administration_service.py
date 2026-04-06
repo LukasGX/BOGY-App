@@ -2,9 +2,9 @@ import json
 import secrets
 import sqlite3
 from fastapi import HTTPException
-import webpush
+from pywebpush import webpush
 from api.v1.deps import get_db, hash_password
-from definitions import VAPID_EMAIL, VAPID_PRIVATE_KEY
+from definitions import VAPID_PRIVATE_KEY, VAPID_EMAIL
 
 def create_user_s(payload):
     with get_db() as conn:
@@ -53,34 +53,22 @@ def push_all(title, body):
     with get_db() as conn:
         cursor = conn.cursor()
         cursor.execute("SELECT endpoint, p256dh, auth FROM push_subscriptions")
-        
-        subs = []
-        for row in cursor.fetchall():
-            sub = {
-                "endpoint": row["endpoint"],
-                "keys": {"p256dh": row["p256dh"], "auth": row["auth"]}
-            }
-            subs.append(sub)
+        subs = [{"endpoint":r["endpoint"], "keys":{"p256dh":r["p256dh"],"auth":r["auth"]}} for r in cursor.fetchall()]
         
         successful = 0
-        for subscription_info in subs:
+        for sub_dict in subs:
             try:
-                response = webpush(
-                    subscription_info=subscription_info,
+                webpush(
+                    subscription_info=sub_dict,
                     data=json.dumps({"title": title, "body": body, "icon": "/icon.png"}),
                     vapid_private_key=VAPID_PRIVATE_KEY,
-                    vapid_claims={"sub": VAPID_EMAIL}
+                    vapid_claims={"sub": f"mailto:{VAPID_EMAIL}"}
                 )
                 successful += 1
             except Exception as e:
-                print(f"Failed to send push to {subscription_info['endpoint']} - {str(e)}")
+                print(f"Failed {sub_dict['endpoint'][:50]}... - {e}")
         
-        return {
-            "sent": successful,
-            "failed": len(subs) - successful,
-            "total": len(subs),
-            "target": "ALLE NUTZER"
-        }
+        return {"sent": successful, "failed": len(subs)-successful, "total": len(subs)}
     
 def push_user(user_id, title, body):
     with get_db() as conn:
@@ -90,30 +78,23 @@ def push_user(user_id, title, body):
             WHERE user_id = ?
         """, (user_id,))
         
-        subs = []
-        row = cursor.fetchone()
-        if row:
-            sub = {
-                "endpoint": row["endpoint"],
-                "keys": {"p256dh": row["p256dh"], "auth": row["auth"]}
-            }
-            subs.append(sub)
+        subs = [{"endpoint":r["endpoint"], "keys":{"p256dh":r["p256dh"],"auth":r["auth"]}} for r in cursor.fetchall()]
         
         if not subs:
-            return {"sent": 0, "failed": 0, "total": 0, "error": "Kein User oder keine Subscription"}
+            return {"sent": 0, "failed": 0, "total": 0, "error": "No subscription found"}
         
         successful = 0
-        for subscription_info in subs:
+        for sub_dict in subs:
             try:
-                response = webpush(
-                    subscription_info=subscription_info,
+                webpush(
+                    subscription_info=sub_dict,
                     data=json.dumps({"title": title, "body": body, "icon": "/icon.png"}),
                     vapid_private_key=VAPID_PRIVATE_KEY,
-                    vapid_claims={"sub": "mailto:noreply@deineapp.de"}
+                    vapid_claims={"sub": f"mailto:{VAPID_EMAIL}"}
                 )
                 successful += 1
-            except:
-                pass
+            except Exception as e:
+                print(f"Failed user {user_id}: {sub_dict['endpoint'][:50]}... - {e}")
         
         return {
             "sent": successful,
