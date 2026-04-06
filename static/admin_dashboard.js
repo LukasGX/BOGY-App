@@ -46,7 +46,7 @@ async function clickOnClassCard(id) {
 
 		<span>Schüler:</span>
 			${
-				data.student_count > 0
+				data.class.student_count >= 1
 					? `<div class="element-card-mini-container">` +
 						data.students
 							.map(
@@ -62,7 +62,7 @@ async function clickOnClassCard(id) {
 			}
 		<span>Andere Benutzer:</span>
 			${
-				data.others_count > 0
+				data.class.others_count >= 1
 					? `<div class="element-card-mini-container">` +
 						data.others
 							.map(
