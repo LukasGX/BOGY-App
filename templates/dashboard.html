@@ -81,7 +81,12 @@
 						id="wlancode-{{ code.id }}"
 						onclick="clickOnWlanCodeCard('wlancode-{{ code.id }}')">
 						<span>{{ code.code }}</span>
-						<span>Ablaufdatum: {{ code.expiry_formatted }}</span>
+						<span>
+							Ablaufdatum:
+							<span class="mono">
+								{{ code.expiry_formatted }}
+							</span>
+						</span>
 					</div>
 					{% endfor %}
 				</div>

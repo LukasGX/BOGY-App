@@ -57,5 +57,5 @@ async def get_wlan_code(request: Request, code_id: int, session_data: dict = Dep
 
 @router.patch("/wlan-code/{code_id}")
 @sl_limiter.limit("1/second")
-async def update_wlan_code(request: Request, code_id: int, session_data: dict = Depends(LoggedIn)):
-    return update_wlan_code_s(code_id)
+async def update_wlan_code(request: Request, code_id: int, new_expiry: str = Body(embed=True), new_user_ids: str = Body(embed=True), session_data: dict = Depends(LoggedIn)):
+    return update_wlan_code_s(code_id, new_expiry, new_user_ids)

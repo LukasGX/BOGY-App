@@ -565,21 +565,8 @@ async function clickOnWlanCodeCard(id) {
 		}
 	}
 
-	let usersView = "";
-	if (users === "Alle Benutzer") {
-		usersView = "<p>Benutzer: Alle Benutzer</p>";
-	} else {
-		usersView = "Benutzer: <div class='element-card-mini-container'>";
-		users.forEach((user) => {
-			usersView += `
-				<div class="element-card mini mini-user-card">
-					<span>${user.username}</span>
-					<span>${user.firstname} ${user.lastname}</span>
-				</div>
-			`;
-		});
-		usersView += "</div>";
-	}
+	const responseUsers = await fetch("/api/v1/data/get-users");
+	const dataUsers = await responseUsers.json();
 
 	openModal(`
 		<h2>WLAN-Code ${data.code.code} - Details</h2>
@@ -588,13 +575,58 @@ async function clickOnWlanCodeCard(id) {
 		<input type="datetime-local" id="expiry" value="${expiryDate
 			.toISOString()
 			.slice(0, 16)}" />
-		${usersView}
+		<select id="userSelect" multiple>
+			<option value="all">Alle Benutzer</option>
+			${dataUsers.users
+				.map(
+					(user) =>
+						`<option value="${user.id}">
+					${user.username} (${user.firstname} ${user.lastname})
+				</option>`
+				)
+				.join("")}
+		</select>
 		<button id="save-code-btn">Änderungen speichern</button>
 		<button id="delete-code-btn" class="destructive">WLAN-Code löschen</button>
 	`);
 
+	setTimeout(() => {
+		const choices = new Choices("#userSelect", {
+			searchEnabled: true,
+			itemSelectText: "",
+			removeItemButton: true,
+			shouldSort: false,
+			placeholderValue: "Auswählen...",
+			classNames: {
+				containerOuter: "choices"
+			}
+		});
+
+		if (users === "Alle Benutzer") {
+			choices.setChoiceByValue("all");
+		} else {
+			users.forEach((user) => {
+				const option = dataUsers.users.find(
+					(u) =>
+						u.username === user.username &&
+						u.firstname === user.firstname &&
+						u.lastname === user.lastname
+				);
+				if (option) {
+					choices.setChoiceByValue(option.id.toString());
+				}
+			});
+		}
+	}, 50);
+
 	document.getElementById("save-code-btn").onclick = async () => {
-		const newExpiry = document.getElementById("expiry").value;
+		const newExpiryValue = document.getElementById("expiry").value;
+		const newExpiry = newExpiryValue.replace("T", " ") + ":00.000000";
+		const selectedUsers = Array.from(
+			document.getElementById("userSelect").selectedOptions
+		)
+			.map((option) => option.value)
+			.join(";");
 
 		const response = await fetch(`/api/v1/data/wlan-code/${codeId}`, {
 			method: "PATCH",
@@ -602,7 +634,8 @@ async function clickOnWlanCodeCard(id) {
 				"Content-Type": "application/json"
 			},
 			body: JSON.stringify({
-				new_expiry: newExpiry
+				new_expiry: newExpiry,
+				new_user_ids: selectedUsers
 			})
 		});
 
@@ -616,6 +649,36 @@ async function clickOnWlanCodeCard(id) {
 				<button onclick="clickOnWlanCodeCard('wlancode-${codeId}')">OK</button>
 			`);
 		}
+	};
+
+	document.getElementById("delete-code-btn").onclick = async () => {
+		closeModal();
+		openModal(`
+			<h2>WLAN-Code löschen</h2>
+			<p>Sind Sie sicher, dass Sie diesen WLAN-Code löschen möchten?</p>
+			<button id="confirm-delete-btn" class="destructive">Ja, WLAN-Code löschen</button>
+			<button onclick="clickOnWlanCodeCard('wlancode-${codeId}')">Abbrechen</button>
+		`);
+
+		document.getElementById("confirm-delete-btn").onclick = async () => {
+			const response = await fetch(
+				`/api/v1/administration/wlan-code/${codeId}`,
+				{
+					method: "DELETE"
+				}
+			);
+
+			if (response.ok) {
+				window.location.reload();
+			} else {
+				closeModal();
+				openModal(`
+					<h2>Fehler beim Löschen des WLAN-Codes</h2>
+					<p>Es ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.</p>
+					<button onclick="clickOnWlanCodeCard('wlancode-${codeId}')">OK</button>
+				`);
+			}
+		};
 	};
 }
 
@@ -660,7 +723,8 @@ async function addWlanCode() {
 
 	document.getElementById("create-code-btn").onclick = async () => {
 		const code = document.getElementById("code").value;
-		const expiry = document.getElementById("expiry").value;
+		const expiryValue = document.getElementById("expiry").value;
+		const expiry = expiryValue.replace("T", " ") + ":00.000000";
 		const selectedUsers = Array.from(
 			document.getElementById("userSelect").selectedOptions
 		)

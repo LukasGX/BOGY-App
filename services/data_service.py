@@ -185,7 +185,7 @@ def get_wlan_code_s(code_id):
 
         return {"code": code_dict}
     
-def update_wlan_code_s(code_id):
+def update_wlan_code_s(code_id, new_expiry, new_user_ids):
     with get_db() as conn:
         cursor = conn.cursor()
 
@@ -194,8 +194,7 @@ def update_wlan_code_s(code_id):
         if not code:
             return {"error": "WLAN code not found"}
         
-        new_expiry = datetime.now() + timedelta(days=7)
-        cursor.execute("UPDATE wlan_codes SET expiry = ? WHERE id = ?", (new_expiry, code_id))
+        cursor.execute("UPDATE wlan_codes SET expiry = ?, user_ids = ? WHERE id = ?", (new_expiry, new_user_ids, code_id))
         conn.commit()
 
         return {"success": True, "new_expiry": new_expiry}

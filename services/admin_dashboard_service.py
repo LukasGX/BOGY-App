@@ -18,7 +18,6 @@ def root_s(request, session_data):
         for code in wlan_codes:
             if code.get('expiry'):
                 try:
-                    # ISO-String parsen (Z → +00:00)
                     expiry_str = code['expiry'].replace('Z', '+00:00')
                     dt = datetime.strptime(expiry_str, '%Y-%m-%d %H:%M:%S.%f')
                     code['expiry_formatted'] = dt.strftime('%d.%m.%Y %H:%M')

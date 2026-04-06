@@ -186,3 +186,13 @@ def add_wlan_code_s(users, code, expiry):
         conn.commit()
 
         return {"status": "success", "code":{"code": code, "users": users, "expiry": expiry}}
+    
+def delete_wlan_code_s(code_id):
+    with get_db() as conn:
+        cursor = conn.cursor()
+
+        cursor.execute("DELETE FROM wlan_codes WHERE id = ?", (code_id,))
+        if cursor.rowcount == 0:
+            raise HTTPException(status_code=404, detail="WLAN code not found")
+        conn.commit()
+        return {"status": "success"}

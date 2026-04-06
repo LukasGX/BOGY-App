@@ -55,3 +55,8 @@ async def reset_user_password(request: Request, user_id: int, session_data: dict
 @sl_limiter.limit("10/minute")
 async def add_wlan_code(request: Request, code: str = Body(embed=True), user_ids: str = Body(embed=True), expiry: str = Body(embed=True), session_data: dict = Depends(require_role(4))):
     return add_wlan_code_s(user_ids, code, expiry)
+
+@router.delete("/wlan-code/{code_id}")
+@sl_limiter.limit("10/minute")
+async def delete_wlan_code(request: Request, code_id: int, session_data: dict = Depends(require_role(4))):
+    return delete_wlan_code_s(code_id)
