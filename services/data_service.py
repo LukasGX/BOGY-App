@@ -1,10 +1,9 @@
-from datetime import datetime, timedelta
 from api.v1.deps import get_db, hash_password
 
 def get_subjects_s(session_data):
     with get_db() as conn:
         cursor = conn.cursor()
-        cursor.execute("SELECT id, name FROM subjects ORDER BY name")
+        cursor.execute("SELECT id, name, german_name FROM subjects ORDER BY name")
         all_subs = cursor.fetchall()
 
         cursor.execute("SELECT subjects FROM tutoring WHERE user = ?", (session_data["user_id"],))
@@ -16,7 +15,7 @@ def get_subjects_s(session_data):
         id_to_name = {r["id"]: r["name"] for r in all_subs}
 
         return {
-            "subjects": [{"id": r["id"], "name": r["name"]} for r in all_subs],
+            "subjects": [{"id": r["id"], "name": r["name"], "german_name": r["german_name"]} for r in all_subs],
             "user_subject_ids": user_sub_ids,
             "user_subjects": [id_to_name.get(i) for i in user_sub_ids],
         }

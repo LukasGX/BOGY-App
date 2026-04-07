@@ -17,3 +17,8 @@ async def edit_tutor_profile(request: Request, session_data: dict = Depends(Logg
 @sl_limiter.limit("5/minute")
 async def search_tutors(request: Request):
     return search_tutors_s(request)
+
+@router.get("/all-tutors")
+@sl_limiter.limit("1/second")
+async def all_tutors(request: Request):
+    return all_tutors_s()

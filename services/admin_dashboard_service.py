@@ -2,6 +2,7 @@ from datetime import datetime
 from api.v1.deps import get_db
 from services.data_service import get_classes_s, get_users_s
 from services.wlan_service import get_wlan_codes
+from services.tutoring_service import all_tutors_s
 from definitions import templates
 
 def root_s(request, session_data):
@@ -25,12 +26,16 @@ def root_s(request, session_data):
                     code['expiry_formatted'] = code['expiry']
             else:
                 code['expiry_formatted'] = 'Kein Ablaufdatum'
+
+        tutors_raw = all_tutors_s()
+        tutors = tutors_raw.get("results", [])
             
         context = {
             "request": request,
             "username": session_data.get("username", ""),
             "classes": classes[0:4],
             "users": users[0:4],
-            "wlan_codes": wlan_codes[0:4]
+            "wlan_codes": wlan_codes[0:4],
+            "tutors": tutors[0:3]
         }
         return templates.TemplateResponse("dashboard.html", context)

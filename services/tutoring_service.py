@@ -2,6 +2,7 @@ import sqlite3
 from fastapi import HTTPException
 from fastapi.responses import RedirectResponse
 from api.v1.deps import get_db
+from services.data_service import get_subjects_s
 
 def register(request, session_data):
     with get_db() as conn:
@@ -144,4 +145,53 @@ def search_tutors_s(request):
                 }
             )
 
+        return {"results": results, "count": len(results)}
+    
+def all_tutors_s():
+    with get_db() as conn:
+        cursor = conn.cursor()
+
+        cursor.execute("SELECT id, name, german_name FROM subjects")
+        all_subs = cursor.fetchall()
+        id_to_name = {str(r["id"]): r["name"] for r in all_subs}
+        id_to_german_name = {str(r["id"]): r["german_name"] for r in all_subs}
+
+        cursor.execute(
+            """
+            SELECT
+                t.id as tutoring_id,
+                t.user as user_id,
+                t.subjects,
+                u.username,
+                u.firstname,
+                u.lastname
+            FROM tutoring t
+            JOIN users u ON t.user = u.id
+            """
+        )
+
+        results = []
+        for row in cursor.fetchall():
+            subjects_field = row["subjects"]
+            subject_ids = subjects_field.split(",") if subjects_field else []
+
+            subjects = []
+            for subject in subject_ids:
+                subjects.append(
+                    {
+                        "id": subject,
+                        "name": id_to_name.get(subject, subject),
+                        "german_name": id_to_german_name.get(subject, subject)
+                    }
+                )
+
+            results.append(
+                {
+                    "user_id": row["user_id"],
+                    "username": row["username"],
+                    "firstname": row["firstname"],
+                    "lastname": row["lastname"],
+                    "subjects": subjects
+                }
+            )
         return {"results": results, "count": len(results)}

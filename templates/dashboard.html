@@ -97,6 +97,27 @@
 					<button id="send-push">Push-Benachrichtigung senden</button>
 				</div>
 			</div>
+			<div>
+				<div class="app-head">
+					Nachhilfe
+					<button id="btn-details-tutoring">Details</button>
+				</div>
+				<div class="app-body">
+					{% for tutor in tutors %}
+					<div class="element-card tutor-card">
+						<span>
+							{{ tutor.username }} ({{ tutor.firstname }} {{
+							tutor.lastname }})
+						</span>
+						<span>
+							Fächer: {% set subjects = tutor.subjects |
+							map(attribute='german_name') | join(', ') %} {{
+							subjects }}
+						</span>
+					</div>
+					{% endfor %}
+				</div>
+			</div>
 		</main>
 
 		<script src="/static/admin_dashboard.js"></script>

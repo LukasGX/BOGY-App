@@ -30,6 +30,7 @@ function closeModal() {
 const btnDetailsClasses = document.getElementById("btn-details-classes");
 const btnDetailsUsers = document.getElementById("btn-details-users");
 const btnDetailsWlanCodes = document.getElementById("btn-details-wlan-codes");
+const btnDetailsTutoring = document.getElementById("btn-details-tutoring");
 
 async function clickOnClassCard(id) {
 	closeModal();
@@ -827,6 +828,26 @@ btnDetailsWlanCodes.onclick = async () => {
 				clickOnWlanCodeCard(id);
 			}
 		});
+};
+
+btnDetailsTutoring.onclick = async () => {
+	const response = await fetch("/api/v1/tutoring/all-tutors");
+	const data = await response.json();
+
+	let offers = "";
+	data.results.forEach((offer) => {
+		offers += `
+			<div class="element-card tutor-card">
+				<span>${offer.username}</span>
+				<span>Fächer: ${offer.subjects.map((subject) => subject.german_name).join(", ")}</span>
+			</div>
+		`;
+	});
+
+	openModal(`
+		<h2>Nachhilfe - Details</h2>
+		${offers}
+	`);
 };
 
 // push

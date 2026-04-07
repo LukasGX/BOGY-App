@@ -89,7 +89,8 @@ def init_db():
             """
             CREATE TABLE IF NOT EXISTS subjects (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                name TEXT UNIQUE NOT NULL
+                name TEXT UNIQUE NOT NULL,
+                german_name TEXT UNIQUE NOT NULL
             )
             """
         )
@@ -132,35 +133,34 @@ def init_db():
         cursor.execute("PRAGMA journal_mode=WAL")
 
         # seed subjects
-        subjects = [
-            "german",
-            "english",
-            "french",
-            "latin",
-            "spanish",
-            "italian",
-            "maths",
-            "physics",
-            "chemistry",
-            "biology",
-            "cs",
-            "nut",
-            "history",
-            "geography",
-            "economics",
-            "politics",
-            "business-cs",
-            "art",
-            "music",
-            "pe",
-            "catholic",
-            "evangelic",
-            "ethics",
-        ]
-        for s in subjects:
-            cursor.execute("INSERT OR IGNORE INTO subjects(name) VALUES(?)", (s,))
+        subjects = {
+            "german": "Deutsch",
+            "english": "Englisch",
+            "french": "Französisch",
+            "latin": "Latein",
+            "spanish": "Spanisch",
+            "italian": "Italienisch",
+            "maths": "Mathematik",
+            "physics": "Physik",
+            "chemistry": "Chemie",
+            "biology": "Biologie",
+            "cs": "Informatik",
+            "nut": "Natur und Technik",
+            "history": "Geschichte",
+            "geography": "Geographie",
+            "economics": "Wirtschaft und Recht",
+            "politics": "Politik und Gesellschaft",
+            "business-cs": "Wirtschaftsinformatik",
+            "art": "Kunst",
+            "music": "Musik",
+            "pe": "Sport",
+            "catholic": "Katholische Religionslehre",
+            "evangelic": "Evangelische Religionslehre",
+            "ethics": "Ethik"
+        }
+        for s in subjects.keys():
+            cursor.execute("INSERT OR IGNORE INTO subjects(name, german_name) VALUES(?, ?)", (s, subjects[s],))
         
-        roles = ["student", "teacher", "parent", "administration"]
         roles = {
             "student": "Schüler",
             "teacher": "Lehrer",

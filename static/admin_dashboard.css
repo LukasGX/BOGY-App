@@ -299,3 +299,8 @@ main > div {
 .element-card.wlan-code-card {
 	grid-template-columns: repeat(2, 1fr);
 }
+.element-card.tutor-card {
+	grid-template-columns: 1fr;
+	gap: 0;
+	cursor: default;
+}

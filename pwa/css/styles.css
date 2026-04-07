@@ -50,6 +50,7 @@ header img {
 	display: grid;
 	grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
 	margin-top: 1rem;
+	margin-bottom: 1.5rem;
 }
 
 .app-wrapper {

@@ -9,6 +9,6 @@ async function getProfile() {
 		console.log("User is logged in:", data);
 		return data;
 	} else {
-		// window.location.href = "/app/login.html";
+		window.location.href = "/app/login.html";
 	}
 }
