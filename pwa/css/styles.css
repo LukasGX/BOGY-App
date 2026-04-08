@@ -145,6 +145,11 @@ button.urgent:hover {
 	border-color: rgba(200, 35, 51, 0.3);
 }
 
+button.small {
+	padding: 0.6rem 1.2rem;
+	font-size: 0.9rem;
+}
+
 /* Inputs clean */
 input[type="text"],
 input[type="password"],
@@ -310,6 +315,74 @@ input[type="checkbox"]:checked::after {
 
 .code-el > .expiry {
 	padding-left: 0.5rem;
+}
+
+.notification-el {
+	background: var(--bg-card);
+	border: 1px solid var(--border);
+	border-radius: var(--radius);
+	padding: 1.2rem;
+	margin-bottom: 1rem;
+	box-shadow: var(--shadow);
+}
+
+.notification-el span {
+	display: block;
+}
+
+.notification-el > div {
+	background-color: var(--bg-light);
+	padding: 1rem;
+	border-radius: var(--radius);
+	margin-bottom: 0.5rem;
+}
+
+.notification-el .title {
+	font-weight: 700;
+	font-size: 1.3rem;
+	color: #333;
+}
+
+.notification-el .mini-info {
+	font-size: 0.9rem;
+	color: var(--text-muted);
+	margin-left: 0.7rem;
+}
+
+.notification-el details {
+	margin-top: 0.5rem;
+	padding: 0.6rem 1rem;
+}
+
+.notification-el details button {
+	margin-top: 1rem;
+}
+
+.notification-el details .feedback-el {
+	background: var(--bg-light);
+	padding: 1rem;
+	border-radius: var(--radius);
+	margin-top: 1rem;
+}
+
+.notification-el details .feedback-el span:first-of-type {
+	font-weight: 700;
+	color: #333;
+	display: block;
+	margin-bottom: 0.5rem;
+}
+
+.notification-el details .feedback-el label {
+	padding: 0;
+	display: inline;
+}
+
+.notification-el details .feedback-el label:hover {
+	background-color: transparent;
+}
+
+.notification-el details .feedback-el input[type="radio"]:focus {
+	box-shadow: none;
 }
 
 main {

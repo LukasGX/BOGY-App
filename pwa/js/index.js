@@ -1,6 +1,9 @@
 // add click event listeners to the links
 const tutoringLink = document.getElementById("app-tutoring");
 const wlanLink = document.getElementById("app-wlan");
+const parentNotificationLink = document.getElementById(
+	"app-parentnotification"
+);
 
 if (tutoringLink) {
 	tutoringLink.addEventListener("click", () => {
@@ -11,6 +14,12 @@ if (tutoringLink) {
 if (wlanLink) {
 	wlanLink.addEventListener("click", () => {
 		window.location.href = "/app/wlan.html";
+	});
+}
+
+if (parentNotificationLink) {
+	parentNotificationLink.addEventListener("click", () => {
+		window.location.href = "/app/parentnotification.html";
 	});
 }
 

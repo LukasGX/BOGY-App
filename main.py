@@ -13,7 +13,7 @@ from starlette.middleware.sessions import SessionMiddleware
 from api.v1.deps import get_db
 
 # import routers
-from api.v1.routers import administration, wlan, push, tutoring, user, data, admin_dashboard
+from api.v1.routers import administration, wlan, push, tutoring, parentnotification, user, data, admin_dashboard
 
 # import definitions
 from definitions import sl_limiter, SECRET_KEY
@@ -44,6 +44,7 @@ app.include_router(administration.router, prefix="/api/v1/administration", tags=
 app.include_router(wlan.router, prefix="/api/v1/wlan", tags=["wlan"])
 app.include_router(push.router, prefix="/api/v1/push", tags=["push"])
 app.include_router(tutoring.router, prefix="/api/v1/tutoring", tags=["tutoring"])
+app.include_router(parentnotification.router, prefix="/api/v1/parentnotification", tags=["parentnotification"])
 app.include_router(user.router, prefix="/api/v1/user", tags=["user"])
 app.include_router(data.router, prefix="/api/v1/data", tags=["data"])
 app.include_router(admin_dashboard.router, prefix="/dashboard", tags=["admin_dashboard"])
@@ -129,12 +130,13 @@ def init_db():
         """)
 
         cursor.execute("""
-            CREATE TABLE IF NOT EXISTS passwords (
+            CREATE TABLE IF NOT EXISTS parentnotifications (
                 id INTEGER PRIMARY KEY,
-                service TEXT NOT NULL,
-                username TEXT NOT NULL,
-                password_encrypted TEXT NOT NULL,
-                salt TEXT NOT NULL,
+                title TEXT NOT NULL,
+                body TEXT NOT NULL,
+                feedback TEXT NOT NULL,
+                attachments TEXT,
+                user_ids TEXT NOT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         """)
