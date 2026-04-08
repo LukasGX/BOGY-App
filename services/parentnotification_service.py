@@ -12,6 +12,7 @@ def get_parentnotifications_s(session_data, filter_user_id=True):
 
         cursor.execute("""
             SELECT
+                pn.id,
                 pn.title,
                 pn.body,
                 pn.feedback,

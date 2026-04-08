@@ -304,3 +304,6 @@ main > div {
 	gap: 0;
 	cursor: default;
 }
+.element-card.pn-card {
+	grid-template-columns: repeat(3, 1fr);
+}

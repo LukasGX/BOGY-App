@@ -118,6 +118,26 @@
 					{% endfor %}
 				</div>
 			</div>
+			<div>
+				<div class="app-head">
+					Elternbriefe
+					<button id="btn-details-parentnotifications">
+						Details
+					</button>
+				</div>
+				<div class="app-body">
+					{% for pn in notifications %}
+					<div class="element-card pn-card">
+						<span>{{ pn.title}}</span>
+						<span>
+							{{ pn.attachments_count }} {{"Anhang" if
+							pn.attachments_count == 1 else "Anhänge"}}
+						</span>
+						<span class="mono">{{ pn.date }}</span>
+					</div>
+					{% endfor %}
+				</div>
+			</div>
 		</main>
 
 		<script src="/static/admin_dashboard.js"></script>
