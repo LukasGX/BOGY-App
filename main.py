@@ -51,6 +51,7 @@ app.include_router(admin_dashboard.router, prefix="/dashboard", tags=["admin_das
 
 app.mount("/app", StaticFiles(directory="pwa", html=True), name="pwa")
 app.mount("/static", StaticFiles(directory="static", html=True), name="static")
+app.mount("/files", StaticFiles(directory="public_files"), name="files")
 
 def init_db():
     with get_db() as conn:

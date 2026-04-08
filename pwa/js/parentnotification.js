@@ -63,7 +63,7 @@ async function main() {
                     ${att
 						.map(
 							(a) => `
-                            <a href="${a}" target="_blank">
+                            <a href="/files/${a}" target="_blank">
                                 <button class="small">${a}</button>
                             </a>`
 						)
@@ -88,6 +88,7 @@ async function main() {
                             `
 						)
 						.join("")}
+					<button class="small">Senden</button>
                 </details>`
 				: `<span class="mini-info">Keine Rückmeldung</span>`;
 
