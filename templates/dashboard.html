@@ -127,7 +127,9 @@
 				</div>
 				<div class="app-body">
 					{% for pn in notifications %}
-					<div class="element-card pn-card">
+					<div
+						class="element-card pn-card"
+						onclick="clickOnParentNotificationCard('pn-{{ pn.id }}')">
 						<span>{{ pn.title}}</span>
 						<span>
 							{{ pn.attachments_count }} {{"Anhang" if

@@ -31,6 +31,9 @@ const btnDetailsClasses = document.getElementById("btn-details-classes");
 const btnDetailsUsers = document.getElementById("btn-details-users");
 const btnDetailsWlanCodes = document.getElementById("btn-details-wlan-codes");
 const btnDetailsTutoring = document.getElementById("btn-details-tutoring");
+const btnDetailsParentNotification = document.getElementById(
+	"btn-details-parentnotifications"
+);
 
 async function clickOnClassCard(id) {
 	closeModal();
@@ -848,6 +851,171 @@ btnDetailsTutoring.onclick = async () => {
 		<h2>Nachhilfe - Details</h2>
 		${offers}
 	`);
+};
+
+async function clickOnParentNotificationCard(id) {
+	closeModal();
+
+	const notificationId = id.split("-")[1];
+	const response = await fetch("/api/v1/parentnotification/list");
+	const data = await response.json();
+
+	const notification = data.parent_notifications.find(
+		(pn) => pn.id.toString() === notificationId.toString()
+	);
+
+	if (!notification) {
+		openModal(`
+			<h2>Fehler</h2>
+			<p>Die Elternbenachrichtigung konnte nicht gefunden werden.</p>
+			<button onclick="closeModal()">OK</button>
+		`);
+		return;
+	}
+
+	const attachments = JSON.parse(notification.attachments || "[]");
+	const feedback = JSON.parse(notification.feedback || "[]");
+	const userIds = notification.user_ids
+		? notification.user_ids.split(";").filter((value) => value !== "")
+		: [];
+
+	let recipientsHtml = "";
+	if (userIds.includes("all")) {
+		recipientsHtml = `<span>Alle Benutzer</span>`;
+	} else if (userIds.length === 0) {
+		recipientsHtml = `<span>Keine Empfänger angegeben</span>`;
+	} else {
+		const userNames = await Promise.all(
+			userIds.map(async (userId) => {
+				try {
+					const userResponse = await fetch(
+						`/api/v1/data/user/${userId}`
+					);
+					if (!userResponse.ok) throw new Error();
+					const userData = await userResponse.json();
+					return [
+						userData.user.username,
+						`${userData.user.firstname} ${userData.user.lastname}`
+					];
+				} catch (error) {
+					return `ID ${userId}`;
+				}
+			})
+		);
+		recipientsHtml = userNames
+			.map(
+				(name) =>
+					`<div class="element-card mini mini-user-card">
+						<span>${name[0]}</span>
+						<span>${name[1]}</span>
+					</div>`
+			)
+			.join("<br />");
+	}
+
+	openModal(`
+		<h2>Elternbrief - Details</h2>
+		<p>
+			Titel: ${notification.title}
+		</p>
+		<p>
+			Text: ${notification.body}
+		</p>
+		<label>Empfänger:</label>
+		<div class="element-card-mini-container">${recipientsHtml}</div>
+		<label>Anhänge:</label>
+		${
+			attachments.length > 0
+				? `<div class="element-card-mini-container">${attachments
+						.map(
+							(file) => `
+							<a href="/files/${file}" target="_blank">
+								<button class="small">${file}</button>
+							</a>
+						`
+						)
+						.join("")}</div>`
+				: `<span class="mini-info">Keine Anhänge</span>`
+		}
+		<label>Rückmeldung:</label>
+		${
+			feedback.length > 0
+				? `<div class="element-card-mini-container">${feedback
+						.map(
+							(item) => `
+							<div style="display: flex;">
+								<div class="feedback-preview feedback-preview-l">
+									<span>${item.label}</span>
+								</div>
+								<div class="feedback-preview feedback-preview-r">
+									<span class="mini-info">${item.type}</span>
+								</div>
+							</div>
+						`
+						)
+						.join("")}</div>`
+				: `<span class="mini-info">Keine Rückmeldung</span>`
+		}
+		<button onclick="closeModal()">OK</button>
+	`);
+}
+
+btnDetailsParentNotification.onclick = async () => {
+	const response = await fetch("/api/v1/parentnotification/list");
+	const data = await response.json();
+
+	if (!data.parent_notifications || data.parent_notifications.length === 0) {
+		openModal(`
+			<h2>Elternbriefe - Details</h2>
+			<p>Keine Elternbriefe gefunden.</p>
+			<button onclick="closeModal()">OK</button>
+		`);
+		return;
+	}
+
+	let notificationsHtml = "";
+	data.parent_notifications.forEach((notification) => {
+		const attachmentCount = JSON.parse(
+			notification.attachments || "[]"
+		).length;
+		const attachmentsLabel = attachmentCount === 1 ? "Anhang" : "Anhänge";
+		const createdAt = new Date(
+			notification.created_at.replace("Z", "+00:00")
+		);
+		const formattedDate = createdAt
+			.toLocaleString("de-DE", {
+				day: "2-digit",
+				month: "2-digit",
+				year: "numeric",
+				hour: "2-digit",
+				minute: "2-digit"
+			})
+			.replace(",", " ");
+
+		notificationsHtml += `
+			<div class="element-card pn-card" id="pn-${notification.id}">
+				<span>${notification.title}</span>
+				<span>${attachmentCount} ${attachmentsLabel}</span>
+				<span class="mono">${formattedDate}</span>
+			</div>
+		`;
+	});
+
+	openModal(`
+		<h2>Elternbriefe - Details</h2>
+		<div id="parentnotifications-container">
+			${notificationsHtml}
+		</div>
+	`);
+
+	document
+		.getElementById("parentnotifications-container")
+		.addEventListener("click", (e) => {
+			if (e.target.closest(".element-card")) {
+				const id = e.target.closest(".element-card").id;
+				clickOnParentNotificationCard(id);
+			}
+		});
 };
 
 // push

@@ -307,3 +307,27 @@ main > div {
 .element-card.pn-card {
 	grid-template-columns: repeat(3, 1fr);
 }
+
+/* Feedback */
+.feedback-preview {
+	background-color: rgba(0, 0, 0, 0.06);
+	padding: 0.3rem 1rem;
+	border-radius: 8px;
+	margin-bottom: 0.3rem;
+	border: 1px solid rgba(0, 0, 0, 0.2);
+	cursor: default;
+	transition: 225ms ease;
+}
+
+.feedback-preview:hover {
+	background-color: rgba(0, 0, 0, 0.1);
+}
+
+.feedback-preview-l {
+	border-radius: var(--radius) 0 0 var(--radius);
+	border-right: var(--border);
+}
+
+.feedback-preview-r {
+	border-radius: 0 var(--radius) var(--radius) 0;
+}
