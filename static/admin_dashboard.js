@@ -1088,6 +1088,9 @@ async function addParentNotification() {
 	const response = await fetch("/api/v1/data/get-users");
 	const data = await response.json();
 
+	const filesResponse = await fetch("/api/v1/data/get-files");
+	const filesData = await filesResponse.json();
+
 	openModal(`
 	<h2>Elternbrief erstellen</h2>
 	<label for="title">Betreff:</label>
@@ -1101,11 +1104,31 @@ async function addParentNotification() {
 			.map(
 				(user) =>
 					`<option value="${user.id}">
-				${user.username} (${user.firstname} ${user.lastname})
-			</option>`
+						${user.username} (${user.firstname} ${user.lastname})
+					</option>`
 			)
 			.join("")}
 	</select>
+	<label for="attachments">Anhänge:</label>
+	<select id="attachments" multiple>
+		<option value="none">Keine Anhänge</option>
+		${filesData.files
+			.map(
+				(file) =>
+					`<option value="${file}">
+						${file}
+					</option>`
+			)
+			.join("")}
+	</select>
+	<label>Rückmeldung:</label>
+	<div style="display: flex;">
+		<div class="feedback-preview" style="cursor: pointer;" id="add-feedback-field">
+			<span>+</span>
+		</div>
+	</div>
+	<div id="feedback-fields"></div>
+	<button id="create-pn-button">Elternbrief erstellen</button>
 	`);
 
 	setTimeout(() => {
@@ -1119,7 +1142,85 @@ async function addParentNotification() {
 				containerOuter: "choices"
 			}
 		});
+
+		new Choices("#attachments", {
+			searchEnabled: true,
+			itemSelectText: "",
+			removeItemButton: true,
+			shouldSort: false,
+			placeholderValue: "Auswählen...",
+			classNames: {
+				containerOuter: "choices"
+			}
+		});
 	}, 50);
+
+	/*
+	<div style="display: flex;">
+		<div class="feedback-preview feedback-preview-l">
+			<span>${item.label}</span>
+		</div>
+		<div class="feedback-preview feedback-preview-r">
+			<span class="mini-info">${item.type}</span>
+		</div>
+	</div>
+	*/
+
+	let usedIds = new Set();
+	function getUniqueId() {
+		let id;
+		do {
+			id = Math.random().toString(36).substr(2, 8);
+		} while (usedIds.has(id));
+		usedIds.add(id);
+		return id;
+	}
+
+	document.getElementById("add-feedback-field").onclick = () => {
+		const newFieldID = getUniqueId();
+
+		const container = document.getElementById("feedback-fields");
+
+		const newFieldContainer = document.createElement("div");
+		newFieldContainer.style.display = "flex";
+
+		const newFieldL = document.createElement("div");
+		newFieldL.classList.add("feedback-preview", "feedback-preview-l");
+		newFieldL.innerHTML = `
+		<label for="field-${newFieldID}-question">Frage:</label>
+		<input type="text" id="field-${newFieldID}-question">
+		`;
+
+		const newFieldR = document.createElement("div");
+		newFieldR.classList.add("feedback-preview", "feedback-preview-r");
+		newFieldR.innerHTML = `
+		<label for="field-${newFieldID}-type">Typ:</label>
+		<select id="field-${newFieldID}-type">
+			<option value="freetext">Freitext</option>
+			<option value="single-choice">Einzelauswahl</option>
+		</select>
+		<label for="field-${newFieldID}-options" id="field-${newFieldID}-options-label">Auswahlmöglichkeiten (mit " " getrennt):</label>
+		<input type="text" id="field-${newFieldID}-options">
+		`;
+
+		// append
+		newFieldContainer.appendChild(newFieldL);
+		newFieldContainer.appendChild(newFieldR);
+		container.appendChild(newFieldContainer);
+
+		setTimeout(() => {
+			const select = new Choices(`#field-${newFieldID}-type`, {
+				searchEnabled: false,
+				itemSelectText: "",
+				removeItemButton: false,
+				shouldSort: false,
+				placeholderValue: "Auswählen...",
+				classNames: {
+					containerOuter: "choices"
+				}
+			});
+		}, 50);
+	};
 }
 
 btnDetailsParentNotification.onclick = async () => {

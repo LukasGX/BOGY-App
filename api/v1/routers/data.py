@@ -59,3 +59,8 @@ async def get_wlan_code(request: Request, code_id: int, session_data: dict = Dep
 @sl_limiter.limit("1/second")
 async def update_wlan_code(request: Request, code_id: int, new_expiry: str = Body(embed=True), new_user_ids: str = Body(embed=True), session_data: dict = Depends(LoggedIn)):
     return update_wlan_code_s(code_id, new_expiry, new_user_ids)
+
+@router.get("/get-files")
+@sl_limiter.limit("1/second")
+async def get_files(request: Request, session_data: dict = Depends(LoggedIn)):
+    return get_files_s(session_data)

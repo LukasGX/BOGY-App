@@ -1,3 +1,6 @@
+import os
+from pathlib import Path
+
 from api.v1.deps import get_db, hash_password
 
 def get_subjects_s(session_data):
@@ -215,3 +218,8 @@ def update_wlan_code_s(code_id, new_expiry, new_user_ids):
         conn.commit()
 
         return {"success": True, "new_expiry": new_expiry}
+    
+def get_files_s(session_data):
+    path = Path("public_files/")
+    files = [p.name for p in path.iterdir() if p.is_file()]
+    return {"files": files}
