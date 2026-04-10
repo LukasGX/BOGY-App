@@ -853,6 +853,127 @@ btnDetailsTutoring.onclick = async () => {
 	`);
 };
 
+async function viewFeedback(id) {
+	closeModal();
+
+	const notificationId = id.split("-")[1];
+
+	const response = await fetch(
+		`/api/v1/parentnotification/feedback/${notificationId}`
+	);
+	const data = await response.json();
+
+	if (!data.data || !data.data.feedbacks) {
+		openModal(`
+			<h2>Rückmeldungen - ${data.notification_title}</h2>
+			<p>Keine Rückmeldungen gefunden.</p>
+			<button onclick="closeModal()">OK</button>
+		`);
+		return;
+	}
+
+	// Fetch notification to get feedback labels
+	const notificationResponse = await fetch("/api/v1/parentnotification/list");
+	const notificationData = await notificationResponse.json();
+	const notification = notificationData.parent_notifications.find(
+		(pn) => pn.id.toString() === notificationId.toString()
+	);
+
+	let feedbackLabels = {};
+	let choiceMaps = {};
+	if (notification) {
+		const feedbackArray = JSON.parse(notification.feedback || "[]");
+		feedbackArray.forEach((item, index) => {
+			feedbackLabels[index.toString()] = item.label;
+			if (
+				item.type === "single-choice" ||
+				item.type === "multiple-choice"
+			) {
+				choiceMaps[index.toString()] = {};
+				item.choices.forEach((choice) => {
+					choiceMaps[index.toString()][choice.val] = choice.label;
+				});
+			}
+		});
+	}
+
+	const feedbacks = data.data.feedbacks;
+	const feedbackEntries = Object.entries(feedbacks);
+
+	if (feedbackEntries.length === 0) {
+		openModal(`
+			<h2>Rückmeldungen - ${data.notification_title}</h2>
+			<p>Keine Rückmeldungen gefunden.</p>
+			<button onclick="closeModal()">OK</button>
+		`);
+		return;
+	}
+
+	// Fetch user data for each feedback
+	const userPromises = feedbackEntries.map(async ([userId, feedback]) => {
+		try {
+			const userResponse = await fetch(`/api/v1/data/user/${userId}`);
+			const userData = await userResponse.json();
+			return {
+				userId,
+				username: userData.user.username,
+				firstname: userData.user.firstname,
+				lastname: userData.user.lastname,
+				feedback
+			};
+		} catch (error) {
+			return {
+				userId,
+				username: `ID ${userId}`,
+				firstname: "",
+				lastname: "",
+				feedback
+			};
+		}
+	});
+
+	const feedbackData = await Promise.all(userPromises);
+
+	let tableRows = "";
+	feedbackData.forEach((item) => {
+		const feedbackStr = Object.entries(item.feedback)
+			.map(([key, value]) => {
+				let displayValue = value;
+				if (choiceMaps[key] && choiceMaps[key][value]) {
+					displayValue = choiceMaps[key][value];
+				}
+				return `${feedbackLabels[key] || key}: ${displayValue}`;
+			})
+			.join("\n");
+
+		tableRows += `
+			<tr>
+				<td>${item.username}</td>
+				<td>${item.firstname} ${item.lastname}</td>
+				<td><pre>${feedbackStr}</pre></td>
+			</tr>
+		`;
+	});
+
+	openModal(`
+		<h2>Rückmeldungen - ${data.notification_title}</h2>
+		<p>Rückmeldungen: ${Object.keys(data.data.feedbacks).length}</p>
+		<table class="feedback-table">
+			<thead>
+				<tr>
+					<th>Benutzername</th>
+					<th>Name</th>
+					<th>Rückmeldung</th>
+				</tr>
+			</thead>
+			<tbody>
+				${tableRows}
+			</tbody>
+		</table>
+		<button onclick="closeModal()">OK</button>
+	`);
+}
+
 async function clickOnParentNotificationCard(id) {
 	closeModal();
 
@@ -921,9 +1042,9 @@ async function clickOnParentNotificationCard(id) {
 		<p>
 			Text: ${notification.body}
 		</p>
-		<label>Empfänger:</label>
+		<span>Empfänger:</span>
 		<div class="element-card-mini-container">${recipientsHtml}</div>
-		<label>Anhänge:</label>
+		<span>Anhänge:</span>
 		${
 			attachments.length > 0
 				? `<div class="element-card-mini-container">${attachments
@@ -935,9 +1056,9 @@ async function clickOnParentNotificationCard(id) {
 						`
 						)
 						.join("")}</div>`
-				: `<span class="mini-info">Keine Anhänge</span>`
+				: `<span class="mini-info mgb">Keine Anhänge</span>`
 		}
-		<label>Rückmeldung:</label>
+		<span>Rückmeldung:</span>
 		${
 			feedback.length > 0
 				? `<div class="element-card-mini-container">${feedback
@@ -954,10 +1075,51 @@ async function clickOnParentNotificationCard(id) {
 						`
 						)
 						.join("")}</div>`
-				: `<span class="mini-info">Keine Rückmeldung</span>`
+				: `<span class="mini-info mgb">Keine Rückmeldung</span>`
 		}
 		<button onclick="closeModal()">OK</button>
+		<button onclick="viewFeedback('${id}')">Rückmeldungen ansehen</button>
 	`);
+}
+
+async function addParentNotification() {
+	closeModal();
+
+	const response = await fetch("/api/v1/data/get-users");
+	const data = await response.json();
+
+	openModal(`
+	<h2>Elternbrief erstellen</h2>
+	<label for="title">Betreff:</label>
+	<input type="text" id="title">
+	<label for="body">Inhalt:</label>
+	<textarea id="body"></textarea>
+	<label for="users">Benutzer:</label>
+	<select id="users" multiple>
+		<option value="all">Alle Benutzer</option>
+		${data.users
+			.map(
+				(user) =>
+					`<option value="${user.id}">
+				${user.username} (${user.firstname} ${user.lastname})
+			</option>`
+			)
+			.join("")}
+	</select>
+	`);
+
+	setTimeout(() => {
+		new Choices("#users", {
+			searchEnabled: true,
+			itemSelectText: "",
+			removeItemButton: true,
+			shouldSort: false,
+			placeholderValue: "Auswählen...",
+			classNames: {
+				containerOuter: "choices"
+			}
+		});
+	}, 50);
 }
 
 btnDetailsParentNotification.onclick = async () => {
@@ -1005,6 +1167,10 @@ btnDetailsParentNotification.onclick = async () => {
 		<h2>Elternbriefe - Details</h2>
 		<div id="parentnotifications-container">
 			${notificationsHtml}
+			<div class="element-card pn-card add-element" id="add-pn-card">
+				<span>+</span>
+				<span>Elternbrief erstellen</span>
+			</div>
 		</div>
 	`);
 
@@ -1013,6 +1179,12 @@ btnDetailsParentNotification.onclick = async () => {
 		.addEventListener("click", (e) => {
 			if (e.target.closest(".element-card")) {
 				const id = e.target.closest(".element-card").id;
+
+				if (id === "add-pn-card") {
+					addParentNotification();
+					return;
+				}
+
 				clickOnParentNotificationCard(id);
 			}
 		});

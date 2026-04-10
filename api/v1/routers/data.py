@@ -36,12 +36,12 @@ async def get_users(request: Request, session_data: dict = Depends(LoggedIn)):
     return get_users_s()
 
 @router.get("/user/{user_id}")
-@sl_limiter.limit("1/second")
+@sl_limiter.limit("100/second")
 async def get_user(request: Request, user_id: int, session_data: dict = Depends(LoggedIn)):
     return get_user_s(user_id)
 
 @router.patch("/user/{user_id}")
-@sl_limiter.limit("10/minute")
+@sl_limiter.limit("1/second")
 async def update_user(request: Request, user_id: int, new_role: int = Body(embed=True), new_class: int = Body(embed=True), new_username: str = Body(embed=True), new_firstname: str = Body(embed=True), new_lastname: str = Body(embed=True), session_data: dict = Depends(LoggedIn)):
     return update_user_s(user_id, new_role, new_class, new_username, new_firstname, new_lastname)
 

@@ -20,6 +20,7 @@ def get_parentnotifications_s(session_data, filter_user_id=True):
                 pn.user_ids,
                 pn.created_at
             FROM parentnotifications pn
+            ORDER BY pn.created_at ASC
         """)
         notifications = cursor.fetchall()
 
@@ -70,14 +71,24 @@ def feedback_s(session_data, notification_id, feedback):
 def get_feedback_s(session_data, notification_id):
     with get_db() as conn:
         cursor = conn.cursor()
-        cursor.execute("SELECT id FROM parentnotifications WHERE id = ?", (notification_id,))
+        cursor.execute("SELECT id, title FROM parentnotifications WHERE id = ?", (notification_id,))
         check_row = cursor.fetchone()
         if not check_row:
             return {"error": "Notification not found"}
         
         file = Path(f"parent_notification_feedback/{notification_id}.json")
+
+        if not os.path.exists(file):
+            return {"notification": notification_id, "notification_title": check_row["title"], "error": "Notification feedback not found"}
         
         with open(file, "r", encoding='utf-8') as f:
             data = json.load(f)
 
-        return {"notification": notification_id, "data": data}
+        return {"notification": notification_id, "notification_title": check_row["title"], "data": data}
+    
+def create_parentnotification_s(session_data, title, body, feedback, attachments, user_ids):
+    with get_db() as conn:
+        cursor = conn.cursor()
+
+        cursor.execute("INSERT INTO parentnotifications (title, body, feedback, attachments, user_ids) VALUES (?, ?, ?, ?, ?)", (title, body, feedback, attachments, user_ids,))
+        conn.commit()

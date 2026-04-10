@@ -79,6 +79,23 @@ body {
 	font-weight: bold;
 }
 
+table {
+	width: 100%;
+	border-collapse: collapse;
+	margin-bottom: 1rem;
+}
+
+th,
+td {
+	border: 1px solid rgba(0, 0, 0, 0.2);
+	padding: 0.3rem 1rem;
+}
+
+.mgb {
+	margin-bottom: 0.5rem;
+	display: block;
+}
+
 header {
 	background: var(--bg);
 	padding: 0.6rem;
@@ -158,6 +175,10 @@ textarea:focus {
 input:not([type="checkbox"]):hover,
 textarea:hover {
 	border-color: var(--primary-hover);
+}
+
+textarea {
+	resize: vertical;
 }
 
 .choices {
