@@ -385,6 +385,27 @@ input[type="checkbox"]:checked::after {
 	box-shadow: none;
 }
 
+.pw-el {
+	background: var(--bg-card);
+	border: 1px solid var(--border);
+	border-radius: var(--radius);
+	padding: 1.2rem;
+	margin-bottom: 1rem;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	box-shadow: var(--shadow);
+}
+
+.pw-el span {
+	font-weight: bold;
+	font-size: 1.2rem;
+}
+
+.pw-el button {
+	width: min-content;
+}
+
 main {
 	max-width: 600px;
 	margin: 0 auto;

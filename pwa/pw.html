@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="de">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>BOGY-App Passwörter</title>
+
+		<link rel="stylesheet" href="css/styles.css" />
+		<link rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
+	</head>
+	<body>
+		<header>
+			<img src="resources/logo.png" alt="BOGY-Logo" class="logo" />
+			<span class="heading">Passwörter</span>
+		</header>
+		<main id="page-nonefound">
+			<p>Keine Passwörter gefunden.</p>
+			<button id="create-pw">Passwort eintragen</button>
+		</main>
+		<main id="page-foundsome">
+			<div id="passwords"></div>
+		</main>
+		<main id="page-create">
+			<h2>Passwort eintragen</h2>
+			<label for="service">Plattform:</label>
+			<input type="text" id="service" />
+			<label for="pw">Passwort:</label>
+			<input type="password" id="pw" />
+			<label for="key">Verschlüsselungs-Key:</label>
+			<input type="password" id="key" />
+			<p id="key-note"></p>
+			<button id="create-btn">Eintrag speichern</button>
+		</main>
+	</body>
+
+	<script src="js/methods.js"></script>
+	<script src="js/pw.js"></script>
+</html>

@@ -49,8 +49,8 @@ def require_role(*allowed_roles: int):
 # argon2 password hasher
 ph = PasswordHasher()
 
-def hash_password(password: str) -> str:
-    return ph.hash(password)
+def hash_password(password: str, salt="") -> str:
+    return ph.hash(password, salt=salt)
 
 def verify_password(password: str, hashed: str) -> bool:
     try:

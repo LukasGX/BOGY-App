@@ -4,6 +4,7 @@ const wlanLink = document.getElementById("app-wlan");
 const parentNotificationLink = document.getElementById(
 	"app-parentnotification"
 );
+const pwLink = document.getElementById("app-pw");
 
 if (tutoringLink) {
 	tutoringLink.addEventListener("click", () => {
@@ -20,6 +21,12 @@ if (wlanLink) {
 if (parentNotificationLink) {
 	parentNotificationLink.addEventListener("click", () => {
 		window.location.href = "/app/parentnotification.html";
+	});
+}
+
+if (pwLink) {
+	pwLink.addEventListener("click", () => {
+		window.location.href = "/app/pw.html";
 	});
 }
 

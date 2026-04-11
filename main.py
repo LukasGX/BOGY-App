@@ -13,7 +13,7 @@ from starlette.middleware.sessions import SessionMiddleware
 from api.v1.deps import get_db
 
 # import routers
-from api.v1.routers import administration, wlan, push, tutoring, parentnotification, user, data, admin_dashboard
+from api.v1.routers import administration, wlan, push, tutoring, parentnotification, user, data, admin_dashboard, pw
 
 # import definitions
 from definitions import sl_limiter, SECRET_KEY
@@ -46,6 +46,7 @@ app.include_router(push.router, prefix="/api/v1/push", tags=["push"])
 app.include_router(tutoring.router, prefix="/api/v1/tutoring", tags=["tutoring"])
 app.include_router(parentnotification.router, prefix="/api/v1/parentnotification", tags=["parentnotification"])
 app.include_router(user.router, prefix="/api/v1/user", tags=["user"])
+app.include_router(pw.router, prefix="/api/v1/pw", tags=["pw"])
 app.include_router(data.router, prefix="/api/v1/data", tags=["data"])
 app.include_router(admin_dashboard.router, prefix="/dashboard", tags=["admin_dashboard"])
 
@@ -139,6 +140,25 @@ def init_db():
                 attachments TEXT,
                 user_ids TEXT NOT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS user_keys (
+                user_id INTEGER PRIMARY KEY,
+                hashed_key TEXT NOT NULL,
+                FOREIGN KEY(user_id) REFERENCES users(id)
+            )
+        """)
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS secrets (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                name TEXT NOT NULL,
+                encrypted_value TEXT NOT NULL,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY(user_id) REFERENCES users(id),
+                UNIQUE(user_id, name)
             )
         """)
 
