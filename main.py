@@ -166,6 +166,9 @@ def init_db():
         cursor.execute("PRAGMA foreign_keys=ON")
         cursor.execute("PRAGMA journal_mode=WAL")
 
+        # standard user
+        cursor.execute("INSERT OR IGNORE INTO users (username, firstname, lastname, password, role, class) VALUES ('admin', 'Max', 'Mustermann', '$argon2id$v=19$m=65536,t=3,p=4$rv8/JsLAAwnC8sC/T2cabw$bMBb9Xycyd5MMFXvEF3ni2KCcfROc/jMrIM9sGk70U8', '4', NULL)") # pw: AdminPW (change!)
+
         # seed subjects
         subjects = {
             "german": "Deutsch",
@@ -195,6 +198,7 @@ def init_db():
         for s in subjects.keys():
             cursor.execute("INSERT OR IGNORE INTO subjects(name, german_name) VALUES(?, ?)", (s, subjects[s],))
         
+        # seed roles
         roles = {
             "student": "Schüler",
             "teacher": "Lehrer",
@@ -203,6 +207,7 @@ def init_db():
         }
         for r in roles.keys():
             cursor.execute("INSERT OR IGNORE INTO roles(name, german_name) VALUES(?, ?)", (r, roles[r],))
+            
         conn.commit()
 
 
