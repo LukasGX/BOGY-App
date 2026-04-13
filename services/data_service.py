@@ -116,10 +116,20 @@ def update_class_s(class_id, new_name):
 
         return {"success": True}
     
-def get_users_s():
+def get_users_s(page: int = 1):
+    page = max(1, page)  # Ensure page is at least 1
+    items_per_page = 100
+    offset = (page - 1) * items_per_page
+    
     with get_db() as conn:
         cursor = conn.cursor()
 
+        # Get total count
+        cursor.execute("SELECT COUNT(*) as count FROM users")
+        total_items = cursor.fetchone()["count"]
+        total_pages = (total_items + items_per_page - 1) // items_per_page
+
+        # Get paginated results
         cursor.execute("""
             SELECT
                 u.id,
@@ -136,11 +146,19 @@ def get_users_s():
                 u.role ASC,
                 u.lastname ASC,
                 u.firstname ASC
-            LIMIT 100;
-        """)
+            LIMIT ? OFFSET ?;
+        """, (items_per_page, offset))
         users = cursor.fetchall()
 
-        return {"users": users}
+        return {
+            "users": users,
+            "pagination": {
+                "page": page,
+                "items_per_page": items_per_page,
+                "total_items": total_items,
+                "total_pages": total_pages
+            }
+        }
     
 def get_user_s(user_id):
     with get_db() as conn:

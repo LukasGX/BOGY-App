@@ -13,7 +13,7 @@ from starlette.middleware.sessions import SessionMiddleware
 from api.v1.deps import get_db
 
 # import routers
-from api.v1.routers import administration, wlan, push, tutoring, parentnotification, user, data, admin_dashboard, pw
+from api.v1.routers import administration, wlan, push, tutoring, parentnotification, user, data, admin_dashboard, pw, importing
 
 # import definitions
 from definitions import sl_limiter, SECRET_KEY
@@ -49,6 +49,7 @@ app.include_router(user.router, prefix="/api/v1/user", tags=["user"])
 app.include_router(pw.router, prefix="/api/v1/pw", tags=["pw"])
 app.include_router(data.router, prefix="/api/v1/data", tags=["data"])
 app.include_router(admin_dashboard.router, prefix="/dashboard", tags=["admin_dashboard"])
+app.include_router(importing.router, prefix="/api/v1/import", tags=["import"])
 
 app.mount("/app", StaticFiles(directory="pwa", html=True), name="pwa")
 app.mount("/static", StaticFiles(directory="static", html=True), name="static")
@@ -166,9 +167,6 @@ def init_db():
         cursor.execute("PRAGMA foreign_keys=ON")
         cursor.execute("PRAGMA journal_mode=WAL")
 
-        # standard user
-        cursor.execute("INSERT OR IGNORE INTO users (username, firstname, lastname, password, role, class) VALUES ('admin', 'Max', 'Mustermann', '$argon2id$v=19$m=65536,t=3,p=4$rv8/JsLAAwnC8sC/T2cabw$bMBb9Xycyd5MMFXvEF3ni2KCcfROc/jMrIM9sGk70U8', '4', NULL)") # pw: AdminPW (change!)
-
         # seed subjects
         subjects = {
             "german": "Deutsch",
@@ -207,7 +205,10 @@ def init_db():
         }
         for r in roles.keys():
             cursor.execute("INSERT OR IGNORE INTO roles(name, german_name) VALUES(?, ?)", (r, roles[r],))
-            
+
+        # standard user
+        cursor.execute("INSERT OR IGNORE INTO users (username, firstname, lastname, password, role, class) VALUES ('admin', 'Max', 'Mustermann', '$argon2id$v=19$m=65536,t=3,p=4$rv8/JsLAAwnC8sC/T2cabw$bMBb9Xycyd5MMFXvEF3ni2KCcfROc/jMrIM9sGk70U8', '4', NULL)") # pw: AdminPW (change!)
+
         conn.commit()
 
 

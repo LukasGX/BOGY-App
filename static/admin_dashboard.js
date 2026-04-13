@@ -26,7 +26,7 @@ function closeModal() {
 	});
 }
 
-// get btns
+// get detail btns
 const btnDetailsClasses = document.getElementById("btn-details-classes");
 const btnDetailsUsers = document.getElementById("btn-details-users");
 const btnDetailsWlanCodes = document.getElementById("btn-details-wlan-codes");
@@ -34,6 +34,10 @@ const btnDetailsTutoring = document.getElementById("btn-details-tutoring");
 const btnDetailsParentNotification = document.getElementById(
 	"btn-details-parentnotifications"
 );
+
+// get import btns
+const btnImportClasses = document.getElementById("btn-import-classes");
+const btnImportUsers = document.getElementById("btn-import-users");
 
 async function clickOnClassCard(id) {
 	closeModal();
@@ -245,6 +249,39 @@ btnDetailsClasses.onclick = async () => {
 				clickOnClassCard(id);
 			}
 		});
+};
+
+btnImportClasses.onclick = async () => {
+	const response = await fetch("/api/v1/import/untis/classes");
+	const data = await response.json();
+
+	openModal(`
+		<h2>Klassen von Untis importieren</h2>
+		<p>Es wurden ${data.result.length} Klassen von Untis gefunden. Möchten Sie diese importieren?</p>
+		<div class="element-card-mini-container">
+			${data.result.map((cls) => `<div class="element-card mini-class-card">${cls.name}</div>`).join("<br />")}
+		</div>
+		<button id="start-import-classes-btn">Ja, Klassen importieren</button>
+		<button onclick="closeModal()">Abbrechen</button>
+	`);
+
+	document.getElementById("start-import-classes-btn").onclick = async () => {
+		closeModal();
+		const response = await fetch("/api/v1/import/untis/classes", {
+			method: "POST"
+		});
+
+		if (!response.ok) {
+			openModal(`
+			<h2>Fehler beim Importieren der Klassen</h2>
+			<p>Bitte versuchen Sie es erneut.</p>
+			<button onclick="closeModal()">OK</button>
+			`);
+		}
+		if (response.ok) {
+			window.location.reload();
+		}
+	};
 };
 
 async function clickOnUserCard(id) {
@@ -519,47 +556,120 @@ async function addUser() {
 }
 
 btnDetailsUsers.onclick = async () => {
-	const response = await fetch("/api/v1/data/get-users");
+	const loadUsersPage = async (page = 1) => {
+		const response = await fetch(`/api/v1/data/get-users?page=${page}`);
+		const data = await response.json();
+
+		let users = "";
+		let ids = [];
+		data.users.forEach((user) => {
+			users += `
+				<div class="element-card user-card" id="user-${user.id}">
+					<span>${user.username}</span>
+					<span>Rolle: ${user.german_role_name}</span>
+					<span>Klasse: ${user.class_name ? user.class_name : "Keine Klasse"}</span>
+				</div>
+			`;
+			ids.push(`user-${user.id}`);
+		});
+
+		// Build pagination controls
+		const pagination = data.pagination;
+		let paginationHtml = "";
+		if (pagination.total_pages > 1) {
+			paginationHtml = `
+				<div style="display: flex; justify-content: center; gap: 10px; margin-top: 15px;">
+					${pagination.page > 1 ? `<button id="prev-page-btn" class="pagination-btn">← Vorherige</button>` : ""}
+					<span style="padding: 5px 10px;">Seite ${pagination.page} von ${pagination.total_pages}</span>
+					${pagination.page < pagination.total_pages ? `<button id="next-page-btn" class="pagination-btn">Nächste →</button>` : ""}
+				</div>
+			`;
+		}
+
+		closeModal();
+		openModal(`
+			<h2>Benutzer - Details</h2>
+			<div id="users-container">
+				${users}
+				<div class="element-card user-card add-element" id="add-user-card">
+					<span>+</span>
+					<span>Benutzer erstellen</span>
+				</div>
+			</div>
+			${paginationHtml}
+		`);
+
+		document
+			.getElementById("users-container")
+			.addEventListener("click", (e) => {
+				if (e.target.closest(".element-card")) {
+					const id = e.target.closest(".element-card").id;
+
+					if (id == "add-user-card") {
+						addUser();
+						return;
+					}
+
+					clickOnUserCard(id);
+				}
+			});
+
+		// Handle pagination buttons with proper event delegation
+		setTimeout(() => {
+			const prevBtn = document.getElementById("prev-page-btn");
+			const nextBtn = document.getElementById("next-page-btn");
+
+			if (prevBtn) {
+				prevBtn.onclick = (e) => {
+					e.preventDefault();
+					loadUsersPage(page - 1);
+				};
+			}
+
+			if (nextBtn) {
+				nextBtn.onclick = (e) => {
+					e.preventDefault();
+					loadUsersPage(page + 1);
+				};
+			}
+		}, 0);
+	};
+
+	loadUsersPage(1);
+};
+
+btnImportUsers.onclick = async () => {
+	const response = await fetch("/api/v1/import/untis/users");
 	const data = await response.json();
 
-	let users = "";
-	let ids = [];
-	data.users.forEach((user) => {
-		users += `
-			<div class="element-card user-card" id="user-${user.id}">
-				<span>${user.username}</span>
-				<span>Rolle: ${user.german_role_name}</span>
-				<span>Klasse: ${user.class_name ? user.class_name : "Keine Klasse"}</span>
-			</div>
-		`;
-		ids.push(`user-${user.id}`);
-	});
-
 	openModal(`
-		<h2>Benutzer - Details</h2>
-		<div id="users-container">
-			${users}
-			<div class="element-card user-card add-element" id="add-user-card">
-				<span>+</span>
-				<span>Benutzer erstellen</span>
-			</div>
+		<h2>Benutzer von Untis importieren</h2>
+		<p>Es wurden ${data.teachers.result.length + data.students.result.length} Benutzer von Untis gefunden. Möchten Sie diese importieren?</p>
+		<div class="element-card-mini-container">
+			${data.teachers.result.map((user) => `<div class="element-card mmini-user-card">${user.foreName} ${user.longName}</div>`).join("<br />")}
+			${data.students.result.map((user) => `<div class="element-card mmini-user-card">${user.foreName} ${user.longName}</div>`).join("<br />")}
 		</div>
+		<button id="start-import-users-btn">Ja, Benutzer importieren</button>
+		<button onclick="closeModal()">Abbrechen</button>
 	`);
 
-	document
-		.getElementById("users-container")
-		.addEventListener("click", (e) => {
-			if (e.target.closest(".element-card")) {
-				const id = e.target.closest(".element-card").id;
-
-				if (id == "add-user-card") {
-					addUser();
-					return;
-				}
-
-				clickOnUserCard(id);
-			}
+	document.getElementById("start-import-users-btn").onclick = async () => {
+		closeModal();
+		const response = await fetch("/api/v1/import/untis/users", {
+			method: "POST"
 		});
+
+		if (!response.ok) {
+			openModal(`
+			<h2>Fehler beim Importieren der Benutzer</h2>
+			<p>Bitte versuchen Sie es erneut.</p>
+			<button onclick="closeModal()">OK</button>
+			`);
+		}
+		if (response.ok) {
+			window.location.reload();
+		}
+	};
 };
 
 async function clickOnWlanCodeCard(id) {
@@ -1154,17 +1264,6 @@ async function addParentNotification() {
 			}
 		});
 	}, 50);
-
-	/*
-	<div style="display: flex;">
-		<div class="feedback-preview feedback-preview-l">
-			<span>${item.label}</span>
-		</div>
-		<div class="feedback-preview feedback-preview-r">
-			<span class="mini-info">${item.type}</span>
-		</div>
-	</div>
-	*/
 
 	let usedIds = new Set();
 	function getUniqueId() {

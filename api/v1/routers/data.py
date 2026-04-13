@@ -32,8 +32,8 @@ async def update_class(request: Request, class_id: int, new_name: str = Body(emb
 
 @router.get("/get-users")
 @sl_limiter.limit("1/second")
-async def get_users(request: Request, session_data: dict = Depends(LoggedIn)):
-    return get_users_s()
+async def get_users(request: Request, page: int = 1, session_data: dict = Depends(LoggedIn)):
+    return get_users_s(page)
 
 @router.get("/user/{user_id}")
 @sl_limiter.limit("100/second")

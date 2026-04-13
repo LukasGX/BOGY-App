@@ -263,6 +263,13 @@ main > div {
 	justify-content: space-between;
 }
 
+.app-head > div {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 0.5rem;
+}
+
 .app-body {
 	padding: 1rem;
 }
@@ -313,11 +320,17 @@ main > div {
 .element-card.class-card {
 	grid-template-columns: repeat(3, 1fr);
 }
+.mini-class-card {
+	grid-template-columns: 1fr;
+}
 .element-card.user-card {
 	grid-template-columns: repeat(3, 1fr);
 }
 .mini-user-card {
 	grid-template-columns: repeat(2, 1fr);
+}
+.mmini-user-card {
+	grid-template-columns: 1fr;
 }
 .element-card.wlan-code-card {
 	grid-template-columns: repeat(2, 1fr);
