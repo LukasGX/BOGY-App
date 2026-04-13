@@ -27,6 +27,7 @@ limits==5.8.0
 MarkupSafe==3.0.3
 multidict==6.7.1
 packaging==26.0
+portalocker==3.2.0
 propcache==0.4.1
 py-vapid==1.9.4
 pycparser==3.0
@@ -44,6 +45,5 @@ typing-inspection==0.4.2
 typing_extensions==4.15.0
 urllib3==2.6.3
 uvicorn==0.40.0
-webpush==1.0.6
 wrapt==2.1.1
 yarl==1.22.0
