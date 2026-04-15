@@ -27,8 +27,11 @@ def get_parentnotifications_s(session_data, filter_user_id=True):
         if filter_user_id:
             for notification in notifications:
                 user_ids = notification["user_ids"].split(";")
-                if not str(session_data["user_id"]) in user_ids:
-                    notifications.remove(notification)
+                if user_ids[0] == "all": pass
+                else:
+                    if str(session_data["user_id"]) in user_ids: pass
+                    else: notifications.remove(notification)
+                    
 
         return {"parent_notifications": notifications}
     

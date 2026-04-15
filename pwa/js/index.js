@@ -67,3 +67,18 @@ async function wlanCodesCheck() {
 	}
 }
 wlanCodesCheck();
+
+// check for pns
+async function pnCheck() {
+	const response = await fetch("/api/v1/parentnotification/");
+	const data = await response.json();
+	const appPNBox = document.getElementById("app-parentnotification-box");
+
+	if (data.parent_notifications.length > 0) {
+		const badge = document.createElement("div");
+		badge.classList.add("badge");
+		badge.textContent = data.parent_notifications.length;
+		appPNBox.appendChild(badge);
+	}
+}
+pnCheck();

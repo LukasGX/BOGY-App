@@ -22,9 +22,13 @@
 				<img src="/static/logo.png" alt="BOGY Logo" />
 				<div>
 					<h1>BOGY-App</h1>
-					<p>ADMIN DASHBOARD</p>
+					<p id="subtitle">ADMIN DASHBOARD</p>
 				</div>
 			</div>
+			<button id="universal-search-btn">
+				Universal-Suche
+				<span class="shortcut">U</span>
+			</button>
 			<div style="margin-right: 1rem;">
 				<h1 class="evs">Willkommen, {{ username }}!</h1>
 			</div>
@@ -37,7 +41,10 @@
 						<button id="btn-import-classes">
 							Von WebUntis importieren
 						</button>
-						<button id="btn-details-classes">Details</button>
+						<button id="btn-details-classes">
+							Details
+							<span class="shortcut">K</span>
+						</button>
 					</div>
 				</div>
 				<div class="app-body">
@@ -60,7 +67,10 @@
 						<button id="btn-import-users">
 							Von WebUntis importieren
 						</button>
-						<button id="btn-details-users">Details</button>
+						<button id="btn-details-users">
+							Details
+							<span class="shortcut">B</span>
+						</button>
 					</div>
 				</div>
 				<div class="app-body">
@@ -74,10 +84,9 @@
 							user.username|length > 14 else user.username }}
 						</span>
 						<span>Rolle: {{ user.german_role_name }}</span>
-						<span
-							>Klasse: {{ user.class_name or "Keine Klasse"
-							}}</span
-						>
+						<span>
+							Klasse: {{ user.class_name or "Keine Klasse" }}
+						</span>
 					</div>
 					{% endfor %}
 				</div>
@@ -85,7 +94,10 @@
 			<div>
 				<div class="app-head">
 					WLAN-Codes
-					<button id="btn-details-wlan-codes">Details</button>
+					<button id="btn-details-wlan-codes">
+						Details
+						<span class="shortcut">W</span>
+					</button>
 				</div>
 				<div class="app-body">
 					{% for code in wlan_codes %}
@@ -107,13 +119,19 @@
 			<div>
 				<div class="app-head">Push-Benachrichtigung</div>
 				<div class="app-body">
-					<button id="send-push">Push-Benachrichtigung senden</button>
+					<button id="send-push">
+						Push-Benachrichtigung senden
+						<span class="shortcut">P</span>
+					</button>
 				</div>
 			</div>
 			<div>
 				<div class="app-head">
 					Nachhilfe
-					<button id="btn-details-tutoring">Details</button>
+					<button id="btn-details-tutoring">
+						Details
+						<span class="shortcut">N</span>
+					</button>
 				</div>
 				<div class="app-body">
 					{% for tutor in tutors %}
@@ -136,6 +154,7 @@
 					Elternbriefe
 					<button id="btn-details-parentnotifications">
 						Details
+						<span class="shortcut">E</span>
 					</button>
 				</div>
 				<div class="app-body">
@@ -156,5 +175,6 @@
 		</main>
 
 		<script src="/static/admin_dashboard.js"></script>
+		<script src="/static/dashboard-keys.js"></script>
 	</body>
 </html>

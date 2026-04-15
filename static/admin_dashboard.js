@@ -49,6 +49,7 @@ async function clickOnClassCard(id) {
 
 	openModal(`
 		<h2 data-class-id="${classId}" id="modal-h2">Klasse ${data.class.name} - Details</h2>
+		<p>ID: ${classId}</p>
 		<label for="class-name-input">Klassenname:</label>
 		<input type="text" id="class-name-input" value="${data.class.name}" />
 
@@ -207,7 +208,7 @@ function addClass() {
 	};
 }
 
-btnDetailsClasses.onclick = async () => {
+async function clickOnClassesDetailsBtn() {
 	const response = await fetch("/api/v1/data/get-classes");
 	const data = await response.json();
 
@@ -249,6 +250,10 @@ btnDetailsClasses.onclick = async () => {
 				clickOnClassCard(id);
 			}
 		});
+}
+
+btnDetailsClasses.onclick = async () => {
+	clickOnClassesDetailsBtn();
 };
 
 btnImportClasses.onclick = async () => {
@@ -300,6 +305,7 @@ async function clickOnUserCard(id) {
 
 	openModal(`
 		<h2>Benutzer ${data.user.username} - Details</h2>
+		<p>ID: ${data.user.id}</p>
 		<label for="role">Rolle:</label>
 		<select id="roleSelect">
 			${rolesData.roles
@@ -347,7 +353,7 @@ async function clickOnUserCard(id) {
 		});
 
 		new Choices("#classSelect", {
-			searchEnabled: false,
+			searchEnabled: true,
 			itemSelectText: "",
 			removeItemButton: false,
 			shouldSort: false,
@@ -502,7 +508,7 @@ async function addUser() {
 		});
 
 		new Choices("#classSelect", {
-			searchEnabled: false,
+			searchEnabled: true,
 			itemSelectText: "",
 			removeItemButton: false,
 			shouldSort: false,
@@ -555,7 +561,7 @@ async function addUser() {
 	};
 }
 
-btnDetailsUsers.onclick = async () => {
+async function clickOnUsersDetailsBtn() {
 	const loadUsersPage = async (page = 1) => {
 		const response = await fetch(`/api/v1/data/get-users?page=${page}`);
 		const data = await response.json();
@@ -636,6 +642,10 @@ btnDetailsUsers.onclick = async () => {
 	};
 
 	loadUsersPage(1);
+}
+
+btnDetailsUsers.onclick = async () => {
+	clickOnUsersDetailsBtn();
 };
 
 btnImportUsers.onclick = async () => {
@@ -699,11 +709,12 @@ async function clickOnWlanCodeCard(id) {
 		}
 	}
 
-	const responseUsers = await fetch("/api/v1/data/get-users");
+	const responseUsers = await fetch("/api/v1/data/get-users?all=true");
 	const dataUsers = await responseUsers.json();
 
 	openModal(`
 		<h2>WLAN-Code ${data.code.code} - Details</h2>
+		<p>ID: ${data.code.id}</p>
 		<p>Code: ${data.code.code}</p>
 		<label for="expiry">Ablaufdatum:</label>
 		<input type="datetime-local" id="expiry" value="${expiryDate
@@ -819,7 +830,7 @@ async function clickOnWlanCodeCard(id) {
 async function addWlanCode() {
 	closeModal();
 
-	const response = await fetch("/api/v1/data/get-users");
+	const response = await fetch("/api/v1/data/get-users?all=true");
 	const data = await response.json();
 
 	openModal(`
@@ -890,7 +901,7 @@ async function addWlanCode() {
 	};
 }
 
-btnDetailsWlanCodes.onclick = async () => {
+async function clickOnWlanCodesDetailsBtn() {
 	const response = await fetch("/api/v1/wlan/");
 	const data = await response.json();
 
@@ -941,9 +952,13 @@ btnDetailsWlanCodes.onclick = async () => {
 				clickOnWlanCodeCard(id);
 			}
 		});
+}
+
+btnDetailsWlanCodes.onclick = async () => {
+	clickOnWlanCodesDetailsBtn();
 };
 
-btnDetailsTutoring.onclick = async () => {
+async function clickOnTutoringDetailsBtn() {
 	const response = await fetch("/api/v1/tutoring/all-tutors");
 	const data = await response.json();
 
@@ -961,6 +976,10 @@ btnDetailsTutoring.onclick = async () => {
 		<h2>Nachhilfe - Details</h2>
 		${offers}
 	`);
+}
+
+btnDetailsTutoring.onclick = async () => {
+	clickOnTutoringDetailsBtn();
 };
 
 async function viewFeedback(id) {
@@ -1195,7 +1214,7 @@ async function clickOnParentNotificationCard(id) {
 async function addParentNotification() {
 	closeModal();
 
-	const response = await fetch("/api/v1/data/get-users");
+	const response = await fetch("/api/v1/data/get-users?all=true");
 	const data = await response.json();
 
 	const filesResponse = await fetch("/api/v1/data/get-files");
@@ -1232,7 +1251,7 @@ async function addParentNotification() {
 			.join("")}
 	</select>
 	<label>Rückmeldung:</label>
-	<div style="display: flex;">
+	<div style="display: flex;" id="feedbacks">
 		<div class="feedback-preview" style="cursor: pointer;" id="add-feedback-field">
 			<span>+</span>
 		</div>
@@ -1282,6 +1301,7 @@ async function addParentNotification() {
 
 		const newFieldContainer = document.createElement("div");
 		newFieldContainer.style.display = "flex";
+		newFieldContainer.id = `${newFieldID}`;
 
 		const newFieldL = document.createElement("div");
 		newFieldL.classList.add("feedback-preview", "feedback-preview-l");
@@ -1320,20 +1340,108 @@ async function addParentNotification() {
 			});
 		}, 50);
 	};
+
+	document.getElementById("create-pn-button").onclick = async () => {
+		const title = document.getElementById("title").value;
+		const body = document.getElementById("body").value;
+		const users = Array.from(
+			document.getElementById("users").selectedOptions
+		)
+			.map((opt) => opt.value)
+			.join(";");
+		const attachments = JSON.stringify(
+			Array.from(
+				document.getElementById("attachments").selectedOptions,
+				(opt) => opt.value
+			)
+		);
+		const feedbacksEl = document.getElementById("feedback-fields");
+
+		let feedbacks = [];
+		let lastID = 0;
+
+		Array.from(feedbacksEl.children).forEach((el) => {
+			if (el.id === "add-feedback-field") return;
+
+			const id = el.id;
+			const questionEl = document.getElementById(`field-${id}-question`);
+			const typeEl = document.getElementById(`field-${id}-type`);
+			const optionsEl = document.getElementById(`field-${id}-options`);
+
+			if (!questionEl || !typeEl || !optionsEl) return;
+
+			const question = questionEl.value;
+			const type = typeEl.value;
+			const options = optionsEl.value;
+
+			let choices = [];
+			if (type === "single-choice") {
+				const oSplit = options.split(" ");
+				oSplit.forEach((option) => {
+					choices.push({
+						val: getUniqueId(),
+						label: option
+					});
+				});
+			}
+
+			feedbacks.push({
+				id: lastID,
+				label: question,
+				type: type,
+				choices: choices
+			});
+			lastID += 1;
+		});
+
+		const sendBody = {
+			title: title,
+			body: body,
+			user_ids: users,
+			attachments: attachments,
+			feedback: JSON.stringify(feedbacks)
+		};
+
+		const response = await fetch("/api/v1/parentnotification/", {
+			method: "PUT",
+			headers: {
+				"Content-Type": "application/json"
+			},
+			body: JSON.stringify(sendBody)
+		});
+
+		const data = await response.json();
+
+		if (response.ok) {
+			closeModal();
+			openModal(`
+				<h2>Elternbrief erstellt</h2>
+				<p>Der Elternbrief wurde erfolgreich erstellt.</p>
+				<button onclick="window.location.reload()">OK</button>
+			`);
+		} else {
+			closeModal();
+			openModal(`
+				<h2>Fehler beim Erstellen des Elternbriefes</h2>
+				<p>Es ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.</p>
+				<button onclick="addParentNotification()">OK</button>
+			`);
+		}
+	};
 }
 
-btnDetailsParentNotification.onclick = async () => {
+async function clickOnParentNotificationDetailsBtn() {
 	const response = await fetch("/api/v1/parentnotification/list");
 	const data = await response.json();
 
-	if (!data.parent_notifications || data.parent_notifications.length === 0) {
-		openModal(`
-			<h2>Elternbriefe - Details</h2>
-			<p>Keine Elternbriefe gefunden.</p>
-			<button onclick="closeModal()">OK</button>
-		`);
-		return;
-	}
+	// if (!data.parent_notifications || data.parent_notifications.length === 0) {
+	// 	openModal(`
+	// 		<h2>Elternbriefe - Details</h2>
+	// 		<p>Keine Elternbriefe gefunden.</p>
+	// 		<button onclick="closeModal()">OK</button>
+	// 	`);
+	// 	return;
+	// }
 
 	let notificationsHtml = "";
 	data.parent_notifications.forEach((notification) => {
@@ -1388,11 +1496,15 @@ btnDetailsParentNotification.onclick = async () => {
 				clickOnParentNotificationCard(id);
 			}
 		});
+}
+
+btnDetailsParentNotification.onclick = async () => {
+	clickOnParentNotificationDetailsBtn();
 };
 
 // push
-document.getElementById("send-push").onclick = async () => {
-	const response = await fetch("/api/v1/data/get-users");
+async function sendPush() {
+	const response = await fetch("/api/v1/data/get-users?all=true");
 	const data = await response.json();
 
 	openModal(`
@@ -1423,7 +1535,7 @@ document.getElementById("send-push").onclick = async () => {
 
 	setTimeout(() => {
 		new Choices("#push-users", {
-			searchEnabled: false,
+			searchEnabled: true,
 			itemSelectText: "",
 			removeItemButton: false,
 			shouldSort: false,
@@ -1484,4 +1596,46 @@ document.getElementById("send-push").onclick = async () => {
 			`);
 		}
 	};
+}
+
+document.getElementById("send-push").onclick = async () => {
+	sendPush();
 };
+
+// universal search
+async function universalSearch() {
+	closeModal();
+
+	openModal(`
+	<h2>Universal-Suche</h2>
+	<p>Suchen Sie nach Klassen, Benutzern, WLAN-Codes, Nachhilfe-Einträgen und Elternbriefen.</p>
+	`);
+}
+document.getElementById("universal-search-btn").onclick = async () => {
+	universalSearch();
+};
+
+// dev mode
+function enableCSSDevMode() {
+	const devModeStylesheet = document.createElement("link");
+	devModeStylesheet.rel = "stylesheet";
+	devModeStylesheet.href = "/static/dev-mode.css";
+	document.head.appendChild(devModeStylesheet);
+}
+
+function devModeChanges() {
+	const subtitle = document.getElementById("subtitle");
+	subtitle.innerHTML = `ADMIN DASHBOARD <span class="dm-badge">DEV-MODE</span>`;
+}
+
+function activateDevMode() {
+	console.log("WELCOME TO DEV MODE");
+	closeModal();
+
+	openModal(`
+		<h2>Willkommen im<br />Entwickler-Modus</h2>
+	`);
+
+	devModeChanges();
+	enableCSSDevMode();
+}

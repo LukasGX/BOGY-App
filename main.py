@@ -51,8 +51,16 @@ app.include_router(data.router, prefix="/api/v1/data", tags=["data"])
 app.include_router(admin_dashboard.router, prefix="/dashboard", tags=["admin_dashboard"])
 app.include_router(importing.router, prefix="/api/v1/import", tags=["import"])
 
+class NoCacheStaticFiles(StaticFiles):
+    def file_response(self, full_path, stat_result, scope, status_code=200):
+        resp = super().file_response(full_path, stat_result, scope, status_code)
+        resp.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+        resp.headers["Pragma"] = "no-cache"
+        resp.headers["Expires"] = "0"
+        return resp
+
 app.mount("/app", StaticFiles(directory="pwa", html=True), name="pwa")
-app.mount("/static", StaticFiles(directory="static", html=True), name="static")
+app.mount("/static", NoCacheStaticFiles(directory="static", html=True), name="static")
 app.mount("/files", StaticFiles(directory="public_files"), name="files")
 
 def init_db():

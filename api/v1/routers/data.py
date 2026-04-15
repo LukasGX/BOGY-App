@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Body, Depends, Request
+from fastapi import APIRouter, Body, Depends, Query, Request
 from api.v1.deps import LoggedIn, get_db, hash_password
 from services.data_service import *
 from definitions import sl_limiter
@@ -32,8 +32,8 @@ async def update_class(request: Request, class_id: int, new_name: str = Body(emb
 
 @router.get("/get-users")
 @sl_limiter.limit("1/second")
-async def get_users(request: Request, page: int = 1, session_data: dict = Depends(LoggedIn)):
-    return get_users_s(page)
+async def get_users(request: Request, page: int = 1, all: bool = Query(default=False), session_data: dict = Depends(LoggedIn)):
+    return get_users_s(all, page)
 
 @router.get("/user/{user_id}")
 @sl_limiter.limit("100/second")

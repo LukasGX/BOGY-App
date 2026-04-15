@@ -141,7 +141,12 @@ button:not(.choices__button) {
 	padding: 0.5rem 1rem;
 	border-radius: 8px;
 	cursor: pointer;
+	position: relative;
 	transition: 225ms ease;
+}
+
+button:has(span.shortcut) {
+	padding-right: 2.3rem;
 }
 
 button:not(.choices__button):hover {
@@ -366,4 +371,17 @@ main > div {
 
 .feedback-preview-r {
 	border-radius: 0 var(--radius) var(--radius) 0;
+}
+
+/* Shortcuts */
+.shortcut {
+	background-color: rgba(255, 255, 255, 0.3);
+	padding: 0.2rem 0.4rem;
+	font-weight: bold;
+	border: none;
+	border-radius: 6px;
+	position: absolute;
+	top: 50%;
+	right: 0.4rem;
+	transform: translateY(-50%);
 }

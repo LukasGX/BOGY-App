@@ -116,9 +116,9 @@ def update_class_s(class_id, new_name):
 
         return {"success": True}
     
-def get_users_s(page: int = 1):
+def get_users_s(all = False, page: int = 1):
     page = max(1, page)  # Ensure page is at least 1
-    items_per_page = 100
+    items_per_page = 200 if all == False else 9999999999999
     offset = (page - 1) * items_per_page
     
     with get_db() as conn:
