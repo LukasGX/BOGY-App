@@ -69,7 +69,10 @@
 						class="element-card user-card"
 						id="user-{{ user.id }}"
 						onclick="clickOnUserCard('user-{{ user.id }}')">
-						<span>{{ user.username }}</span>
+						<span>
+							{{ user.username[:14] ~ '...' if
+							user.username|length > 14 else user.username }}
+						</span>
 						<span>Rolle: {{ user.german_role_name }}</span>
 						<span
 							>Klasse: {{ user.class_name or "Keine Klasse"

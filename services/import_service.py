@@ -28,7 +28,7 @@ def import_untis_users_s():
     for teacher in users["teachers"]["result"]:
         fore = teacher["foreName"]
         long = teacher["longName"]
-        username = fore.lower() + "" + long.lower()
+        username = fore.lower().replace(' ', '') + "." + long.lower().replace(' ', '')
 
         payload = CreateUserRequest(
             username=username,
@@ -43,7 +43,7 @@ def import_untis_users_s():
     for student in users["students"]["result"]:
         fore = student["foreName"]
         long = student["longName"]
-        username = fore.lower() + "" + long.lower()
+        username = fore.lower().replace(' ', '') + "." + long.lower().replace(' ', '')
 
         payload = CreateUserRequest(
             username=username,
