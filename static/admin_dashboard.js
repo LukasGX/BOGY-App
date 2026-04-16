@@ -1609,7 +1609,198 @@ async function universalSearch() {
 	openModal(`
 	<h2>Universal-Suche</h2>
 	<p>Suchen Sie nach Klassen, Benutzern, WLAN-Codes, Nachhilfe-Einträgen und Elternbriefen.</p>
+	<label for="search">Suchbegriff:</label>
+	<input type="text" id="search" autocomplete="off" />
+	<div id="search-results" class="search-results"></div>
 	`);
+
+	const searchInput = document.getElementById("search");
+	setTimeout(() => {
+		searchInput.focus();
+	}, 1);
+	const resultsContainer = document.getElementById("search-results");
+
+	resultsContainer.innerHTML = `<p>Starten Sie die Eingabe, um Ergebnisse zu sehen.</p>`;
+
+	let searchItems = [];
+
+	try {
+		const [
+			classesResponse,
+			usersResponse,
+			wlanResponse,
+			tutoringResponse,
+			pnResponse
+		] = await Promise.all([
+			fetch("/api/v1/data/get-classes"),
+			fetch("/api/v1/data/get-users?all=true"),
+			fetch("/api/v1/wlan/"),
+			fetch("/api/v1/tutoring/all-tutors"),
+			fetch("/api/v1/parentnotification/list")
+		]);
+
+		if (
+			!classesResponse.ok ||
+			!usersResponse.ok ||
+			!wlanResponse.ok ||
+			!tutoringResponse.ok ||
+			!pnResponse.ok
+		) {
+			resultsContainer.innerHTML = `<p>Fehler beim Laden der Suchdaten.</p>`;
+			return;
+		}
+
+		const [classesData, usersData, wlanData, tutoringData, pnData] =
+			await Promise.all([
+				classesResponse.json(),
+				usersResponse.json(),
+				wlanResponse.json(),
+				tutoringResponse.json(),
+				pnResponse.json()
+			]);
+
+		searchItems = [
+			...(classesData.classes || []).map((cls) => ({
+				id: `class-${cls.id}`,
+				type: "class",
+				title: cls.name,
+				subtitle: `Schüler: ${cls.student_count} · Andere: ${cls.others_count}`,
+				searchText: `${cls.name}`.toLowerCase()
+			})),
+			...(usersData.users || []).map((user) => ({
+				id: `user-${user.id}`,
+				type: "user",
+				title: user.username,
+				subtitle: `${user.firstname} ${user.lastname} · ${user.german_role_name || ""} · ${user.class_name || "Keine Klasse"}`,
+				searchText:
+					`${user.username} ${user.firstname} ${user.lastname} ${user.german_role_name || ""} ${user.class_name || ""}`.toLowerCase()
+			})),
+			...(wlanData.codes || []).map((code) => ({
+				id: `wlancode-${code.id}`,
+				type: "wlan-code",
+				title: code.code,
+				subtitle: `Gültig bis: ${new Date(
+					code.expiry.replace("Z", "+00:00")
+				).toLocaleString("de-DE", {
+					day: "2-digit",
+					month: "2-digit",
+					year: "numeric",
+					hour: "2-digit",
+					minute: "2-digit"
+				})} `,
+				searchText: `${code.code} ${code.user_ids || ""}`.toLowerCase()
+			})),
+			...(tutoringData.results || []).map((offer, index) => ({
+				id: `tutoring-${offer.id || offer.user_id || offer.tutor_id || index}`,
+				type: "tutoring",
+				title: offer.username,
+				subtitle: `Fächer: ${(offer.subjects || []).map((subject) => subject.german_name).join(", ") || "Keine Fächer"}`,
+				searchText:
+					`${offer.username} ${(offer.subjects || []).map((subject) => subject.german_name).join(" ")}`.toLowerCase()
+			})),
+			...(pnData.parent_notifications || []).map((notification) => ({
+				id: `pn-${notification.id}`,
+				type: "parentnotification",
+				title: notification.title,
+				subtitle: notification.body,
+				searchText:
+					`${notification.title} ${notification.body}`.toLowerCase()
+			}))
+		];
+	} catch (error) {
+		resultsContainer.innerHTML = `<p>Fehler beim Laden der Suchdaten.</p>`;
+		return;
+	}
+
+	function getTypeLabel(type) {
+		switch (type) {
+			case "class":
+				return "Klasse";
+			case "user":
+				return "Benutzer";
+			case "wlan-code":
+				return "WLAN-Code";
+			case "tutoring":
+				return "Nachhilfe";
+			case "parentnotification":
+				return "Elternbrief";
+			default:
+				return "Unbekannt";
+		}
+	}
+
+	function renderResults(results) {
+		if (!results.length) {
+			return `<p>Keine Ergebnisse gefunden.</p>`;
+		}
+
+		return results
+			.map(
+				(item) => `
+					<div class="element-card ${item.type}-card search-result-card" id="${item.id}">
+						<div class="search-result-main">
+							<strong>${item.title}</strong>
+							<small>${getTypeLabel(item.type)}</small>
+						</div>
+						<div class="search-result-subtitle">${item.subtitle}</div>
+					</div>
+				`
+			)
+			.join("");
+	}
+
+	function updateResults() {
+		const query = searchInput.value.trim().toLowerCase();
+		if (!query) {
+			resultsContainer.innerHTML = `<p>Starten Sie die Eingabe, um Ergebnisse zu sehen.</p>`;
+			return;
+		}
+
+		const filtered = searchItems.filter((item) =>
+			item.searchText.includes(query)
+		);
+		resultsContainer.innerHTML = renderResults(filtered);
+	}
+
+	function openTutoringCard(item) {
+		closeModal();
+		openModal(`
+			<h2>Nachhilfe - ${item.title}</h2>
+			<p>${item.subtitle}</p>
+			<button onclick="closeModal()">OK</button>
+		`);
+	}
+
+	resultsContainer.addEventListener("click", (e) => {
+		const card = e.target.closest(".search-result-card");
+		if (!card) return;
+
+		const id = card.id;
+		const item = searchItems.find((entry) => entry.id === id);
+		if (!item) return;
+
+		switch (item.type) {
+			case "class":
+				clickOnClassCard(id);
+				break;
+			case "user":
+				clickOnUserCard(id);
+				break;
+			case "wlan-code":
+				clickOnWlanCodeCard(id);
+				break;
+			case "parentnotification":
+				clickOnParentNotificationCard(id);
+				break;
+			case "tutoring":
+				openTutoringCard(item);
+				break;
+			default:
+				break;
+		}
+	});
+
+	searchInput.addEventListener("input", updateResults);
 }
 document.getElementById("universal-search-btn").onclick = async () => {
 	universalSearch();

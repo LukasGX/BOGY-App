@@ -31,12 +31,12 @@ window.addEventListener("keydown", (e) => {
 			break;
 		case "u":
 			universalSearch();
+			break;
 		case "0":
 			zeroCounter += 1;
 			if (zeroCounter >= 3) {
-				// >= für Reset-Sicherheit
 				activateDevMode();
-				zeroCounter = 0; // Reset nach Aktivierung
+				zeroCounter = 0;
 			}
 			break;
 	}
