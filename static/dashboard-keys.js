@@ -32,6 +32,9 @@ window.addEventListener("keydown", (e) => {
 		case "u":
 			universalSearch();
 			break;
+		case "+":
+			plusKey();
+			break;
 		case "0":
 			zeroCounter += 1;
 			if (zeroCounter >= 3) {

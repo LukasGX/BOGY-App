@@ -24,6 +24,8 @@ function closeModal() {
 	document.querySelectorAll(".modal").forEach((el) => {
 		el.remove();
 	});
+
+	PLUS_SHORTCUT_ACTION = () => {};
 }
 
 // get detail btns
@@ -39,6 +41,9 @@ const btnDetailsParentNotification = document.getElementById(
 const btnImportClasses = document.getElementById("btn-import-classes");
 const btnImportUsers = document.getElementById("btn-import-users");
 
+let PLUS_SHORTCUT_ACTION = () => {};
+let DEV_MODE = false;
+
 async function clickOnClassCard(id) {
 	closeModal();
 
@@ -49,9 +54,9 @@ async function clickOnClassCard(id) {
 
 	openModal(`
 		<h2 data-class-id="${classId}" id="modal-h2">Klasse ${data.class.name} - Details</h2>
-		<p>ID: ${classId}</p>
+		${DEV_MODE ? `<p>ID: ${classId}</p>` : ""}
 		<label for="class-name-input">Klassenname:</label>
-		<input type="text" id="class-name-input" value="${data.class.name}" />
+		<input type="text" id="class-name-input" value="${data.class.name}" ${DEV_MODE ? `placeholder="class-name-input"` : ""} />
 
 		<span>Schüler:</span>
 			${
@@ -178,7 +183,7 @@ function addClass() {
 	openModal(`
 		<h2>Klasse erstellen</h2>
 		<label for="class-name-input">Klassenname:</label>
-		<input type="text" id="class-name-input" />
+		<input type="text" id="class-name-input" ${DEV_MODE ? `placeholder="class-name-input"` : ""} />
 		<button id="create-class-btn">Klasse erstellen</button>
 	`);
 
@@ -211,6 +216,10 @@ function addClass() {
 async function clickOnClassesDetailsBtn() {
 	const response = await fetch("/api/v1/data/get-classes");
 	const data = await response.json();
+
+	PLUS_SHORTCUT_ACTION = () => {
+		addClass();
+	};
 
 	let classes = "";
 	let ids = [];
@@ -305,7 +314,7 @@ async function clickOnUserCard(id) {
 
 	openModal(`
 		<h2>Benutzer ${data.user.username} - Details</h2>
-		<p>ID: ${data.user.id}</p>
+		${DEV_MODE ? `<p>ID: ${data.user.id}</p>` : ""}
 		<label for="role">Rolle:</label>
 		<select id="roleSelect">
 			${rolesData.roles
@@ -330,11 +339,11 @@ async function clickOnUserCard(id) {
 			)}
 		</select>
 		<label for="username">Benutzername:</label>
-		<input type="text" id="username" value="${data.user.username}" />
+		<input type="text" id="username" value="${data.user.username}" ${DEV_MODE ? `placeholder="username"` : ""} />
 		<label for="firstname">Vorname:</label>
-		<input type="text" id="firstname" value="${data.user.firstname}" />
+		<input type="text" id="firstname" value="${data.user.firstname}" ${DEV_MODE ? `placeholder="firstname"` : ""} />
 		<label for="lastname">Nachname:</label>
-		<input type="text" id="lastname" value="${data.user.lastname}" /><br /><br />
+		<input type="text" id="lastname" value="${data.user.lastname}" ${DEV_MODE ? `placeholder="lastname"` : ""} /><br /><br />
 		<button id="save-user-btn">Änderungen speichern</button>
 		<button id="reset-password-btn">Passwort zurücksetzen</button>
 		<button id="delete-user-btn" class="destructive">Benutzer löschen</button>
@@ -487,11 +496,11 @@ async function addUser() {
 			)}
 		</select>
 		<label for="username">Benutzername:</label>
-		<input type="text" id="username" />
+		<input type="text" id="username" ${DEV_MODE ? `placeholder="username"` : ""} />
 		<label for="firstname">Vorname:</label>
-		<input type="text" id="firstname" />
+		<input type="text" id="firstname" ${DEV_MODE ? `placeholder="firstname"` : ""} />
 		<label for="lastname">Nachname:</label>
-		<input type="text" id="lastname" /><br /><br />
+		<input type="text" id="lastname" ${DEV_MODE ? `placeholder="lastname"` : ""} /><br /><br />
 		<button id="create-user-btn">Benutzer erstellen</button>
 	`);
 
@@ -639,6 +648,10 @@ async function clickOnUsersDetailsBtn() {
 				};
 			}
 		}, 0);
+
+		PLUS_SHORTCUT_ACTION = () => {
+			addUser();
+		};
 	};
 
 	loadUsersPage(1);
@@ -714,10 +727,10 @@ async function clickOnWlanCodeCard(id) {
 
 	openModal(`
 		<h2>WLAN-Code ${data.code.code} - Details</h2>
-		<p>ID: ${data.code.id}</p>
+		${DEV_MODE ? `<p>ID: ${data.code.id}</p>` : ""}
 		<p>Code: ${data.code.code}</p>
 		<label for="expiry">Ablaufdatum:</label>
-		<input type="datetime-local" id="expiry" value="${expiryDate
+		<input type="datetime-local" id="expiry" ${DEV_MODE ? `placeholder="expiry"` : ""} value="${expiryDate
 			.toISOString()
 			.slice(0, 16)}" />
 		<select id="userSelect" multiple>
@@ -836,9 +849,9 @@ async function addWlanCode() {
 	openModal(`
 		<h2>WLAN-Code erstellen</h2>
 		<label for="code">Code:</label>
-		<input type="text" id="code" />
+		<input type="text" id="code" ${DEV_MODE ? `placeholder="code"` : ""} />
 		<label for="expiry">Ablaufdatum:</label>
-		<input type="datetime-local" id="expiry" />
+		<input type="datetime-local" id="expiry" ${DEV_MODE ? `placeholder="expiry"` : ""} />
 		<select id="userSelect" multiple>
 			<option value="all">Alle Benutzer</option>
 			${data.users
@@ -905,6 +918,10 @@ async function clickOnWlanCodesDetailsBtn() {
 	const response = await fetch("/api/v1/wlan/");
 	const data = await response.json();
 
+	PLUS_SHORTCUT_ACTION = () => {
+		addWlanCode();
+	};
+
 	let codes = "";
 	data.codes.forEach((code) => {
 		let expiry_str = code.expiry.replace("Z", "+00:00");
@@ -961,6 +978,8 @@ btnDetailsWlanCodes.onclick = async () => {
 async function clickOnTutoringDetailsBtn() {
 	const response = await fetch("/api/v1/tutoring/all-tutors");
 	const data = await response.json();
+
+	PLUS_SHORTCUT_ACTION = () => {};
 
 	let offers = "";
 	data.results.forEach((offer) => {
@@ -1165,6 +1184,7 @@ async function clickOnParentNotificationCard(id) {
 
 	openModal(`
 		<h2>Elternbrief - Details</h2>
+		${DEV_MODE ? `<p>ID: ${notification.id}</p>` : ""}
 		<p>
 			Titel: ${notification.title}
 		</p>
@@ -1223,9 +1243,9 @@ async function addParentNotification() {
 	openModal(`
 	<h2>Elternbrief erstellen</h2>
 	<label for="title">Betreff:</label>
-	<input type="text" id="title">
+	<input type="text" id="title" ${DEV_MODE ? `placeholder="title"` : ""} />
 	<label for="body">Inhalt:</label>
-	<textarea id="body"></textarea>
+	<textarea id="body" ${DEV_MODE ? `placeholder="body"` : ""}></textarea>
 	<label for="users">Benutzer:</label>
 	<select id="users" multiple>
 		<option value="all">Alle Benutzer</option>
@@ -1307,7 +1327,7 @@ async function addParentNotification() {
 		newFieldL.classList.add("feedback-preview", "feedback-preview-l");
 		newFieldL.innerHTML = `
 		<label for="field-${newFieldID}-question">Frage:</label>
-		<input type="text" id="field-${newFieldID}-question">
+		<input type="text" id="field-${newFieldID}-question" ${DEV_MODE ? `placeholder="field-${newFieldID}-question"` : ""} />
 		`;
 
 		const newFieldR = document.createElement("div");
@@ -1319,7 +1339,7 @@ async function addParentNotification() {
 			<option value="single-choice">Einzelauswahl</option>
 		</select>
 		<label for="field-${newFieldID}-options" id="field-${newFieldID}-options-label">Auswahlmöglichkeiten (mit " " getrennt):</label>
-		<input type="text" id="field-${newFieldID}-options">
+		<input type="text" id="field-${newFieldID}-options" ${DEV_MODE ? `placeholder="field-${newFieldID}-options"` : ""} />
 		`;
 
 		// append
@@ -1434,14 +1454,9 @@ async function clickOnParentNotificationDetailsBtn() {
 	const response = await fetch("/api/v1/parentnotification/list");
 	const data = await response.json();
 
-	// if (!data.parent_notifications || data.parent_notifications.length === 0) {
-	// 	openModal(`
-	// 		<h2>Elternbriefe - Details</h2>
-	// 		<p>Keine Elternbriefe gefunden.</p>
-	// 		<button onclick="closeModal()">OK</button>
-	// 	`);
-	// 	return;
-	// }
+	PLUS_SHORTCUT_ACTION = () => {
+		addParentNotification();
+	};
 
 	let notificationsHtml = "";
 	data.parent_notifications.forEach((notification) => {
@@ -1510,9 +1525,9 @@ async function sendPush() {
 	openModal(`
 		<h2>Push-Benachrichtigung senden</h2>
 		<label for="push-title">Betreff:</label>
-		<input type="text" id="push-title" />
+		<input type="text" id="push-title" ${DEV_MODE ? `placeholder="push-title"` : ""} />
 		<label for="push-message">Nachricht:</label>
-		<textarea id="push-message"></textarea>
+		<textarea id="push-message" ${DEV_MODE ? `placeholder="push-message"` : ""}></textarea>
 		<div class="push-users-container">
 			<input type="checkbox" id="push-send-all" />
 			<label for="push-send-all">An alle Benutzer senden</label>
@@ -1610,7 +1625,7 @@ async function universalSearch() {
 	<h2>Universal-Suche</h2>
 	<p>Suchen Sie nach Klassen, Benutzern, WLAN-Codes, Nachhilfe-Einträgen und Elternbriefen.</p>
 	<label for="search">Suchbegriff:</label>
-	<input type="text" id="search" autocomplete="off" />
+	<input type="text" id="search" autocomplete="off" ${DEV_MODE ? `placeholder="search"` : ""} />
 	<div id="search-results" class="search-results"></div>
 	`);
 
@@ -1820,13 +1835,16 @@ function devModeChanges() {
 }
 
 function activateDevMode() {
-	console.log("WELCOME TO DEV MODE");
+	console.log("%cWELCOME TO DEV MODE", "color: red; font-size: 1.2rem;");
 	closeModal();
 
-	openModal(`
-		<h2>Willkommen im<br />Entwickler-Modus</h2>
-	`);
+	DEV_MODE = true;
 
 	devModeChanges();
 	enableCSSDevMode();
+}
+
+// + Shortcut
+function plusKey() {
+	PLUS_SHORTCUT_ACTION();
 }

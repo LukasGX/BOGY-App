@@ -285,6 +285,7 @@ main > div {
 	border-radius: 8px;
 	margin-bottom: 0.3rem;
 	border: 1px solid rgba(0, 0, 0, 0.2);
+	position: relative;
 
 	display: grid;
 	grid-template-columns: repeat(3, 1fr);
@@ -384,4 +385,8 @@ main > div {
 	top: 50%;
 	right: 0.4rem;
 	transform: translateY(-50%);
+}
+
+.shortcut.dark {
+	background-color: rgba(0, 0, 0, 0.15);
 }
