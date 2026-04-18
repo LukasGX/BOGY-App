@@ -44,16 +44,32 @@ const btnImportUsers = document.getElementById("btn-import-users");
 let PLUS_SHORTCUT_ACTION = () => {};
 let DEV_MODE = false;
 
+function showResults(fetch, response, data) {
+	closeModal();
+	console.log(response);
+
+	openModal(`
+	<h2>${fetch}</h2>
+	<div class="status-code ${response.ok ? "positive" : "negative"}">
+		<h2><span class="indicator"></span> ${response.status} ${response.statusText}</h2>
+	</div>
+	<pre><code>${data}</code></pre>
+	`);
+}
+
 async function clickOnClassCard(id) {
 	closeModal();
 
 	const classId = id.split("-")[1];
 
-	const result = await fetch(`/api/v1/data/class/${classId}`);
-	const data = await result.json();
+	const response = await fetch(`/api/v1/data/class/${classId}`);
+	const data = await response.json();
 
 	openModal(`
-		<h2 data-class-id="${classId}" id="modal-h2">Klasse ${data.class.name} - Details</h2>
+		<h2 data-class-id="${classId}" id="modal-h2">Klasse ${response.ok ? data.class.name : classId} - Details ${DEV_MODE ? `<span class="fetch-hint" id="fetch-hint-1"></span>` : ""}</h2>
+		${
+			response.ok
+				? `
 		${DEV_MODE ? `<p>ID: ${classId}</p>` : ""}
 		<label for="class-name-input">Klassenname:</label>
 		<input type="text" id="class-name-input" value="${data.class.name}" ${DEV_MODE ? `placeholder="class-name-input"` : ""} />
@@ -91,65 +107,69 @@ async function clickOnClassCard(id) {
 					: "Keine<br /><br />"
 			}
 		<button id="save-class-btn">Änderungen speichern</button>
-		<button id="delete-class-btn" class="destructive">Klasse löschen</button>
+		<button id="delete-class-btn" class="destructive">Klasse löschen</button>`
+				: "Fehler"
+		}
 	`);
 
-	document.getElementById("save-class-btn").onclick = async () => {
-		const modalH2 = document.getElementById("modal-h2");
-		const classId = modalH2.getAttribute("data-class-id");
-		const newName = document.getElementById("class-name-input").value;
+	if (response.ok) {
+		document.getElementById("save-class-btn").onclick = async () => {
+			const modalH2 = document.getElementById("modal-h2");
+			const classId = modalH2.getAttribute("data-class-id");
+			const newName = document.getElementById("class-name-input").value;
 
-		const response = await fetch(`/api/v1/data/class/${classId}`, {
-			method: "PATCH",
-			headers: {
-				"Content-Type": "application/json"
-			},
-			body: JSON.stringify({ new_name: newName })
-		});
+			const response = await fetch(`/api/v1/data/class/${classId}`, {
+				method: "PATCH",
+				headers: {
+					"Content-Type": "application/json"
+				},
+				body: JSON.stringify({ new_name: newName })
+			});
 
-		if (response.ok) {
-			window.location.reload();
-		} else {
-			closeModal();
-			openModal(`
+			if (response.ok) {
+				window.location.reload();
+			} else {
+				closeModal();
+				openModal(`
 				<h2>Fehler beim Ändern des Klassennamens</h2>
 				<p>Es ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.</p>
 				<button onclick="clickOnClassCard('class-${classId}')">OK</button>
 			`);
-		}
-	};
+			}
+		};
 
-	document.getElementById("delete-class-btn").onclick = async () => {
-		const modalH2 = document.getElementById("modal-h2");
-		const classId = modalH2.getAttribute("data-class-id");
+		document.getElementById("delete-class-btn").onclick = async () => {
+			const modalH2 = document.getElementById("modal-h2");
+			const classId = modalH2.getAttribute("data-class-id");
 
-		closeModal();
-		openModal(`
+			closeModal();
+			openModal(`
 			<h2 data-class-id="${classId}" id="modal-h2">Klasse löschen</h2>
 			<p>Sind Sie sicher, dass Sie diese Klasse löschen möchten?</p>
 			<button id="confirm-delete-btn" class="destructive">Ja, Klasse löschen</button>
 			<button onclick="clickOnClassCard('class-${classId}')">Abbrechen</button>
 		`);
 
-		document.getElementById("confirm-delete-btn").onclick = async () => {
-			const modalH2 = document.getElementById("modal-h2");
-			const classId = modalH2.getAttribute("data-class-id");
+			document.getElementById("confirm-delete-btn").onclick =
+				async () => {
+					const modalH2 = document.getElementById("modal-h2");
+					const classId = modalH2.getAttribute("data-class-id");
 
-			const response = await fetch(
-				`/api/v1/administration/class/${classId}`,
-				{
-					method: "DELETE"
-				}
-			);
+					const response = await fetch(
+						`/api/v1/administration/class/${classId}`,
+						{
+							method: "DELETE"
+						}
+					);
 
-			const data = await response.json();
+					const data = await response.json();
 
-			if (response.ok) {
-				window.location.reload();
-			} else if (response.status === 409) {
-				closeModal();
+					if (response.ok) {
+						window.location.reload();
+					} else if (response.status === 409) {
+						closeModal();
 
-				openModal(`
+						openModal(`
 				<h2>Fehler beim Löschen der Klasse</h2>
 				<p>Die Klasse kann nicht gelöscht werden, da noch Benutzer der Klasse zugeordnet sind. Bitte entfernen Sie zuerst alle Schüler aus der Klasse.</p>
 				<p>Betroffene Nutzer:</p>
@@ -165,15 +185,24 @@ async function clickOnClassCard(id) {
 						.join("")}
 				</div>
 			`);
-			} else {
-				closeModal();
-				openModal(`
+					} else {
+						closeModal();
+						openModal(`
 					<h2>Fehler beim Löschen der Klasse</h2>
 					<p>Es ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.</p>
 					<button onclick="clickOnClassCard('class-${classId}')">OK</button>
 				`);
-			}
+					}
+				};
 		};
+	}
+
+	document.getElementById("fetch-hint-1").onclick = () => {
+		showResults(
+			`/api/v1/data/class/${classId}`,
+			response,
+			JSON.stringify(data, null, 4)
+		);
 	};
 }
 
@@ -217,48 +246,62 @@ async function clickOnClassesDetailsBtn() {
 	const response = await fetch("/api/v1/data/get-classes");
 	const data = await response.json();
 
-	PLUS_SHORTCUT_ACTION = () => {
-		addClass();
-	};
-
 	let classes = "";
-	let ids = [];
-	data.classes.forEach((cls) => {
-		classes += `
-			<div class="element-card class-card" id="class-${cls.id}">
-				<span>${cls.name}</span>
-				<span>Schüler: ${cls.student_count}</span>
-				<span>Andere Benutzer: ${cls.others_count}</span>
-			</div>
-		`;
-		ids.push(`class-${cls.id}`);
-	});
+
+	if (response.ok) {
+		PLUS_SHORTCUT_ACTION = () => {
+			addClass();
+		};
+		data.classes.forEach((cls) => {
+			classes += `
+				<div class="element-card class-card" id="class-${cls.id}">
+					<span>${cls.name}</span>
+					<span>Schüler: ${cls.student_count}</span>
+					<span>Andere Benutzer: ${cls.others_count}</span>
+				</div>
+			`;
+		});
+	}
 
 	openModal(`
-        <h2>Klassen - Details</h2>
-		<div id="classes-container">
-			${classes}
-			<div class="element-card class-card add-element" id="add-class-card">
-				<span>+</span>
-				<span>Klasse erstellen</span>
-			</div>
-		</div>
+        <h2>Klassen - Details ${DEV_MODE ? `<span class="fetch-hint" id="fetch-hint-1"></span>` : ""}</h2>
+		${
+			response.ok
+				? `<div id="classes-container">
+						${classes}
+						<div class="element-card class-card add-element" id="add-class-card">
+							<span>+</span>
+							<span>Klasse erstellen</span>
+						</div>
+					</div>`
+				: "Fehler"
+		}
     `);
 
-	document
-		.getElementById("classes-container")
-		.addEventListener("click", (e) => {
-			if (e.target.closest(".element-card")) {
-				const id = e.target.closest(".element-card").id;
+	if (response.ok) {
+		document
+			.getElementById("classes-container")
+			.addEventListener("click", (e) => {
+				if (e.target.closest(".element-card")) {
+					const id = e.target.closest(".element-card").id;
 
-				if (id == "add-class-card") {
-					addClass();
-					return;
+					if (id == "add-class-card") {
+						addClass();
+						return;
+					}
+
+					clickOnClassCard(id);
 				}
+			});
+	}
 
-				clickOnClassCard(id);
-			}
-		});
+	document.getElementById("fetch-hint-1").onclick = () => {
+		showResults(
+			"/api/v1/data/get-classes",
+			response,
+			JSON.stringify(data, null, 4)
+		);
+	};
 }
 
 btnDetailsClasses.onclick = async () => {
@@ -1227,7 +1270,10 @@ async function clickOnParentNotificationCard(id) {
 				: `<span class="mini-info mgb">Keine Rückmeldung</span>`
 		}
 		<button onclick="closeModal()">OK</button>
-		<button onclick="viewFeedback('${id}')">Rückmeldungen ansehen</button>
+		<button onclick="viewFeedback('${id}')" id="feedbackBtn">
+			Rückmeldungen ansehen
+			<span class="shortcut">R</span>
+		</button>
 	`);
 }
 
@@ -1836,7 +1882,6 @@ function devModeChanges() {
 
 function activateDevMode() {
 	console.log("%cWELCOME TO DEV MODE", "color: red; font-size: 1.2rem;");
-	closeModal();
 
 	DEV_MODE = true;
 

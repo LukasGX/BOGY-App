@@ -7,3 +7,77 @@ input::placeholder,
 textarea::placeholder {
 	font-family: "Courier New", Courier, monospace;
 }
+
+.fetch-hint {
+	background-color: #af0000;
+	color: #af0000;
+	box-shadow: 0 0 6px #af0000;
+	user-select: none;
+	height: 0.8rem;
+	aspect-ratio: 1 / 1;
+	border-radius: 50%;
+	display: inline-block;
+	margin-left: 0.5rem;
+	cursor: pointer;
+	transition: 225ms ease;
+}
+
+.fetch-hint:hover {
+	box-shadow: 0 0 12px #af0000;
+}
+
+code {
+	background-color: rgba(0, 0, 0, 0.2);
+	padding: 1rem;
+	border-radius: 12px;
+	font-family: "Courier New", Courier, monospace;
+	display: block;
+	overflow-x: auto;
+	white-space: pre;
+	margin: 0;
+}
+
+.status-code {
+	background-color: rgba(0, 0, 0, 0.2);
+	padding: 0.4rem 1rem;
+	border-radius: 12px;
+	user-select: none;
+}
+
+.status-code.positive {
+	background-color: rgba(0, 255, 0, 0.2);
+	color: #10a010;
+}
+
+.status-code.negative {
+	background-color: rgba(255, 0, 0, 0.2);
+	color: #a01010;
+}
+
+.status-code h2 {
+	margin: 0;
+	padding: 0;
+	font-size: 1.3rem;
+	display: flex;
+	align-items: center;
+	gap: 0.8rem;
+}
+
+.status-code .indicator {
+	display: inline-block;
+	height: 0.5rem;
+	aspect-ratio: 1 / 1;
+	border-radius: 50%;
+	background-color: #000000;
+	box-shadow: 0 0 6px #000000;
+}
+
+.status-code.positive .indicator {
+	background-color: #10a010;
+	box-shadow: 0 0 10px #064806;
+}
+
+.status-code.negative .indicator {
+	background-color: #a01010;
+	box-shadow: 0 0 10px #530606;
+}

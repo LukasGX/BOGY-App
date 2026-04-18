@@ -300,6 +300,10 @@ main > div {
 	border: 1px solid rgba(0, 0, 0, 0.2) !important;
 }
 
+.element-card:has(.shortcut) {
+	padding-right: 2.3rem;
+}
+
 .element-card.add-element {
 	border: 1px dashed rgba(0, 0, 0, 0.3);
 	justify-content: center;

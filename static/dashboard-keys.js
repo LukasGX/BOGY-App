@@ -35,6 +35,10 @@ window.addEventListener("keydown", (e) => {
 		case "+":
 			plusKey();
 			break;
+		case "r":
+			const el = document.getElementById("feedbackBtn");
+			if (el) el.click();
+			break;
 		case "0":
 			zeroCounter += 1;
 			if (zeroCounter >= 3) {
