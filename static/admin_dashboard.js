@@ -838,7 +838,7 @@ async function clickOnWlanCodeCard(id) {
 	const dataUsers = await responseUsers.json();
 
 	openModal(`
-		<h2>WLAN-Code ${data.code.code} - Details</h2>
+		<h2>WLAN-Code ${data.code.code} - Details ${DEV_MODE ? `<span class="fetch-hint" id="fetch-hint-1"></span>` : ""} ${DEV_MODE ? `<span class="fetch-hint" id="fetch-hint-2"></span>` : ""}</h2>
 		${DEV_MODE ? `<p>ID: ${data.code.id}</p>` : ""}
 		<p>Code: ${data.code.code}</p>
 		<label for="expiry">Ablaufdatum:</label>
@@ -859,6 +859,22 @@ async function clickOnWlanCodeCard(id) {
 		<button id="save-code-btn">Änderungen speichern</button>
 		<button id="delete-code-btn" class="destructive">WLAN-Code löschen</button>
 	`);
+
+	document.getElementById("fetch-hint-1").onclick = () => {
+		showResults(
+			`/api/v1/data/wlan-code/${codeId}`,
+			response,
+			JSON.stringify(data, null, 4)
+		);
+	};
+
+	document.getElementById("fetch-hint-2").onclick = () => {
+		showResults(
+			"/api/v1/data/get-users?all=true",
+			responseUsers,
+			JSON.stringify(dataUsers, null, 4)
+		);
+	};
 
 	setTimeout(() => {
 		const choices = new Choices("#userSelect", {
@@ -959,7 +975,7 @@ async function addWlanCode() {
 	const data = await response.json();
 
 	openModal(`
-		<h2>WLAN-Code erstellen</h2>
+		<h2>WLAN-Code erstellen ${DEV_MODE ? `<span class="fetch-hint" id="fetch-hint-1"></span>` : ""}</h2>
 		<label for="code">Code:</label>
 		<input type="text" id="code" ${DEV_MODE ? `placeholder="code"` : ""} />
 		<label for="expiry">Ablaufdatum:</label>
@@ -977,6 +993,14 @@ async function addWlanCode() {
 		</select>
 		<button id="create-code-btn">WLAN-Code erstellen</button>
 	`);
+
+	document.getElementById("fetch-hint-1").onclick = () => {
+		showResults(
+			"/api/v1/data/get-users?all=true",
+			response,
+			JSON.stringify(data, null, 4)
+		);
+	};
 
 	setTimeout(() => {
 		new Choices("#userSelect", {
@@ -1057,7 +1081,7 @@ async function clickOnWlanCodesDetailsBtn() {
 	});
 
 	openModal(`
-		<h2>WLAN-Codes - Details</h2>
+		<h2>WLAN-Codes - Details ${DEV_MODE ? `<span class="fetch-hint" id="fetch-hint-1"></span>` : ""}</h2>
 		<div id="wlan-codes-container">
 			${codes}
 			<div class="element-card wlan-code-card add-element" id="add-wlancode-card">
@@ -1066,6 +1090,10 @@ async function clickOnWlanCodesDetailsBtn() {
 			</div>
 		</div>
 	`);
+
+	document.getElementById("fetch-hint-1").onclick = () => {
+		showResults("/api/v1/wlan/", response, JSON.stringify(data, null, 4));
+	};
 
 	document
 		.getElementById("wlan-codes-container")
@@ -1104,9 +1132,17 @@ async function clickOnTutoringDetailsBtn() {
 	});
 
 	openModal(`
-		<h2>Nachhilfe - Details</h2>
+		<h2>Nachhilfe - Details ${DEV_MODE ? `<span class="fetch-hint" id="fetch-hint-1"></span>` : ""}</h2>
 		${offers}
 	`);
+
+	document.getElementById("fetch-hint-1").onclick = () => {
+		showResults(
+			"/api/v1/tutoring/all-tutors",
+			response,
+			JSON.stringify(data, null, 4)
+		);
+	};
 }
 
 btnDetailsTutoring.onclick = async () => {
