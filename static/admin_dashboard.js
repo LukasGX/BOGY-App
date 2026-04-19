@@ -313,7 +313,7 @@ btnImportClasses.onclick = async () => {
 	const data = await response.json();
 
 	openModal(`
-		<h2>Klassen von Untis importieren</h2>
+		<h2>Klassen von Untis importieren ${DEV_MODE ? `<span class="fetch-hint" id="fetch-hint-1"></span>` : ""}</h2>
 		<p>Es wurden ${data.result.length} Klassen von Untis gefunden. Möchten Sie diese importieren?</p>
 		<div class="element-card-mini-container">
 			${data.result.map((cls) => `<div class="element-card mini-class-card">${cls.name}</div>`).join("<br />")}
@@ -339,6 +339,14 @@ btnImportClasses.onclick = async () => {
 			window.location.reload();
 		}
 	};
+
+	document.getElementById("fetch-hint-1").onclick = () => {
+		showResults(
+			"/api/v1/import/untis/classes",
+			response,
+			JSON.stringify(data, null, 4)
+		);
+	};
 };
 
 async function clickOnUserCard(id) {
@@ -356,7 +364,12 @@ async function clickOnUserCard(id) {
 	const classesData = await classesResponse.json();
 
 	openModal(`
-		<h2>Benutzer ${data.user.username} - Details</h2>
+		<h2>
+			Benutzer ${data.user.username} - Details
+			${DEV_MODE ? `<span class="fetch-hint" id="fetch-hint-1"></span>` : ""}
+			${DEV_MODE ? `<span class="fetch-hint" id="fetch-hint-2"></span>` : ""}
+			${DEV_MODE ? `<span class="fetch-hint" id="fetch-hint-3"></span>` : ""}
+		</h2>
 		${DEV_MODE ? `<p>ID: ${data.user.id}</p>` : ""}
 		<label for="role">Rolle:</label>
 		<select id="roleSelect">
@@ -391,6 +404,30 @@ async function clickOnUserCard(id) {
 		<button id="reset-password-btn">Passwort zurücksetzen</button>
 		<button id="delete-user-btn" class="destructive">Benutzer löschen</button>
 	`);
+
+	document.getElementById("fetch-hint-1").onclick = () => {
+		showResults(
+			`/api/v1/data/user/${userId}`,
+			response,
+			JSON.stringify(data, null, 4)
+		);
+	};
+
+	document.getElementById("fetch-hint-2").onclick = () => {
+		showResults(
+			"/api/v1/data/roles",
+			rolesResponse,
+			JSON.stringify(rolesData, null, 4)
+		);
+	};
+
+	document.getElementById("fetch-hint-3").onclick = () => {
+		showResults(
+			"/api/v1/data/get-classes",
+			classesResponse,
+			JSON.stringify(classesData, null, 4)
+		);
+	};
 
 	setTimeout(() => {
 		new Choices("#roleSelect", {
@@ -516,7 +553,7 @@ async function addUser() {
 	const classesData = await classesResponse.json();
 
 	openModal(`
-		<h2>Benutzer erstellen</h2>
+		<h2>Benutzer erstellen ${DEV_MODE ? `<span class="fetch-hint" id="fetch-hint-1"></span>` : ""} ${DEV_MODE ? `<span class="fetch-hint" id="fetch-hint-2"></span>` : ""}</h2>
 		<label for="role">Rolle:</label>
 		<select id="roleSelect">
 			${rolesData.roles
@@ -611,6 +648,22 @@ async function addUser() {
 			`);
 		}
 	};
+
+	document.getElementById("fetch-hint-1").onclick = () => {
+		showResults(
+			"/api/v1/data/roles",
+			rolesResponse,
+			JSON.stringify(rolesData)
+		);
+	};
+
+	document.getElementById("fetch-hint-2").onclick = () => {
+		showResults(
+			"/api/v1/data/get-classes",
+			classesResponse,
+			JSON.stringify(classesData, null, 4)
+		);
+	};
 }
 
 async function clickOnUsersDetailsBtn() {
@@ -646,7 +699,7 @@ async function clickOnUsersDetailsBtn() {
 
 		closeModal();
 		openModal(`
-			<h2>Benutzer - Details</h2>
+			<h2>Benutzer - Details ${DEV_MODE ? `<span class="fetch-hint" id="fetch-hint-1"></span>` : ""}</h2>
 			<div id="users-container">
 				${users}
 				<div class="element-card user-card add-element" id="add-user-card">
@@ -695,6 +748,14 @@ async function clickOnUsersDetailsBtn() {
 		PLUS_SHORTCUT_ACTION = () => {
 			addUser();
 		};
+
+		document.getElementById("fetch-hint-1").onclick = () => {
+			showResults(
+				`/api/v1/data/get-users?page=${page}`,
+				response,
+				JSON.stringify(data, null, 4)
+			);
+		};
 	};
 
 	loadUsersPage(1);
@@ -709,7 +770,7 @@ btnImportUsers.onclick = async () => {
 	const data = await response.json();
 
 	openModal(`
-		<h2>Benutzer von Untis importieren</h2>
+		<h2>Benutzer von Untis importieren ${DEV_MODE ? `<span class="fetch-hint" id="fetch-hint-1"></span>` : ""}</h2>
 		<p>Es wurden ${data.teachers.result.length + data.students.result.length} Benutzer von Untis gefunden. Möchten Sie diese importieren?</p>
 		<div class="element-card-mini-container">
 			${data.teachers.result.map((user) => `<div class="element-card mmini-user-card">${user.foreName} ${user.longName}</div>`).join("<br />")}
@@ -735,6 +796,14 @@ btnImportUsers.onclick = async () => {
 		if (response.ok) {
 			window.location.reload();
 		}
+	};
+
+	document.getElementById("fetch-hint-1").onclick = () => {
+		showResults(
+			"/api/v1/import/untis/users",
+			response,
+			JSON.stringify(data, null, 4)
+		);
 	};
 };
 
