@@ -1252,7 +1252,7 @@ async function viewFeedback(id) {
 	});
 
 	openModal(`
-		<h2>Rückmeldungen - ${data.notification_title}</h2>
+		<h2>Rückmeldungen - ${data.notification_title} ${DEV_MODE ? `<span class="fetch-hint" id="fetch-hint-1"></span>` : ""}</h2>
 		<p>Rückmeldungen: ${Object.keys(data.data.feedbacks).length}</p>
 		<table class="feedback-table">
 			<thead>
@@ -1268,6 +1268,14 @@ async function viewFeedback(id) {
 		</table>
 		<button onclick="closeModal()">OK</button>
 	`);
+
+	document.getElementById("fetch-hint-1").onclick = () => {
+		showResults(
+			`/api/v1/parentnotification/feedback/${notificationId}`,
+			response,
+			JSON.stringify(data, null, 4)
+		);
+	};
 }
 
 async function clickOnParentNotificationCard(id) {
@@ -1331,7 +1339,7 @@ async function clickOnParentNotificationCard(id) {
 	}
 
 	openModal(`
-		<h2>Elternbrief - Details</h2>
+		<h2>Elternbrief - Details ${DEV_MODE ? `<span class="fetch-hint" id="fetch-hint-1"></span>` : ""}</h2>
 		${DEV_MODE ? `<p>ID: ${notification.id}</p>` : ""}
 		<p>
 			Titel: ${notification.title}
@@ -1380,6 +1388,14 @@ async function clickOnParentNotificationCard(id) {
 			<span class="shortcut">R</span>
 		</button>
 	`);
+
+	document.getElementById("fetch-hint-1").onclick = () => {
+		showResults(
+			"/api/v1/parentnotification/list",
+			response,
+			JSON.stringify(data, null, 4)
+		);
+	};
 }
 
 async function addParentNotification() {
@@ -1392,7 +1408,7 @@ async function addParentNotification() {
 	const filesData = await filesResponse.json();
 
 	openModal(`
-	<h2>Elternbrief erstellen</h2>
+	<h2>Elternbrief erstellen ${DEV_MODE ? `<span class="fetch-hint" id="fetch-hint-1"></span>` : ""} ${DEV_MODE ? `<span class="fetch-hint" id="fetch-hint-2"></span>` : ""}</h2>
 	<label for="title">Betreff:</label>
 	<input type="text" id="title" ${DEV_MODE ? `placeholder="title"` : ""} />
 	<label for="body">Inhalt:</label>
@@ -1430,6 +1446,22 @@ async function addParentNotification() {
 	<div id="feedback-fields"></div>
 	<button id="create-pn-button">Elternbrief erstellen</button>
 	`);
+
+	document.getElementById("fetch-hint-1").onclick = () => {
+		showResults(
+			"/api/v1/data/get-users?all=true",
+			response,
+			JSON.stringify(data, null, 4)
+		);
+	};
+
+	document.getElementById("fetch-hint-2").onclick = () => {
+		showResults(
+			"/api/v1/data/get-files",
+			filesResponse,
+			JSON.stringify(filesData, null, 4)
+		);
+	};
 
 	setTimeout(() => {
 		new Choices("#users", {
@@ -1638,7 +1670,7 @@ async function clickOnParentNotificationDetailsBtn() {
 	});
 
 	openModal(`
-		<h2>Elternbriefe - Details</h2>
+		<h2>Elternbriefe - Details ${DEV_MODE ? `<span class="fetch-hint" id="fetch-hint-1"></span>` : ""}</h2>
 		<div id="parentnotifications-container">
 			${notificationsHtml}
 			<div class="element-card pn-card add-element" id="add-pn-card">
@@ -1647,6 +1679,16 @@ async function clickOnParentNotificationDetailsBtn() {
 			</div>
 		</div>
 	`);
+
+	const fetchHint1 = document.getElementById("fetch-hint-1");
+	if (fetchHint1)
+		fetchHint1.onclick = () => {
+			showResults(
+				"/api/v1/parentnotification/list",
+				response,
+				JSON.stringify(data, null, 4)
+			);
+		};
 
 	document
 		.getElementById("parentnotifications-container")
@@ -1674,7 +1716,7 @@ async function sendPush() {
 	const data = await response.json();
 
 	openModal(`
-		<h2>Push-Benachrichtigung senden</h2>
+		<h2>Push-Benachrichtigung senden ${DEV_MODE ? `<span class="fetch-hint" id="fetch-hint-1"></span>` : ""}</h2>
 		<label for="push-title">Betreff:</label>
 		<input type="text" id="push-title" ${DEV_MODE ? `placeholder="push-title"` : ""} />
 		<label for="push-message">Nachricht:</label>
@@ -1711,6 +1753,14 @@ async function sendPush() {
 			}
 		});
 	}, 50);
+
+	document.getElementById("fetch-hint-1").onclick = () => {
+		showResults(
+			"/api/v1/data/get-users?all=true",
+			response,
+			JSON.stringify(data, null, 4)
+		);
+	};
 
 	document.getElementById("push-send-all").onchange = (e) => {
 		const pushUsersSelectContainer = document.getElementById(

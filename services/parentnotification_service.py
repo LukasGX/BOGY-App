@@ -45,6 +45,10 @@ def feedback_s(session_data, notification_id, feedback):
         
         file = Path(f"parent_notification_feedback/{notification_id}.json")
         file.parent.mkdir(exist_ok=True)
+
+        if not os.path.exists(file):
+            with open(file, 'w') as f:
+                f.write("")
         
         with open(file, 'r+', encoding='utf-8') as f:
             portalocker.lock(f, portalocker.LOCK_EX)
