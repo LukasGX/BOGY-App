@@ -1,4 +1,4 @@
-// add click event listeners to the links
+// apps
 const tutoringLink = document.getElementById("app-tutoring");
 const wlanLink = document.getElementById("app-wlan");
 const parentNotificationLink = document.getElementById(
@@ -30,6 +30,37 @@ if (pwLink) {
 	});
 }
 
+// links
+const linkUntis = document.getElementById("link-untis");
+const linkMathegym = document.getElementById("link-mathegym");
+const linkBycs = document.getElementById("link-bycs");
+const linkMS = document.getElementById("link-ms");
+
+if (linkUntis) {
+	linkUntis.addEventListener("click", () => {
+		window.open("https://bogy.webuntis.com", "_blank");
+	});
+}
+
+if (linkMathegym) {
+	linkMathegym.addEventListener("click", () => {
+		window.open("https://mathegym.de", "_blank");
+	});
+}
+
+if (linkBycs) {
+	linkBycs.addEventListener("click", () => {
+		window.open("https://bycs.de", "_blank");
+	});
+}
+
+if (linkMS) {
+	linkMS.addEventListener("click", () => {
+		window.open("https://www.office.com", "_blank");
+	});
+}
+
+// urgent push btn
 const btnActivatePush = document.getElementById("btn-activatepush");
 async function checkPushStatus() {
 	if (!btnActivatePush) return;

@@ -45,8 +45,13 @@ header img {
 	border-radius: 8px;
 }
 
+#indexmain h3 {
+	text-align: center;
+}
+
 /* Sauberes App-Grid */
-#apps {
+#apps,
+#links {
 	display: grid;
 	grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
 	margin-top: 1rem;
