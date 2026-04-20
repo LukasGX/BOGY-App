@@ -95,6 +95,10 @@ header img {
 	transform: translateY(-1px);
 }
 
+.app-sm {
+	font-size: 2rem;
+}
+
 /* Badge clean */
 .badge {
 	position: absolute;
