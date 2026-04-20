@@ -197,13 +197,15 @@ async function clickOnClassCard(id) {
 		};
 	}
 
-	document.getElementById("fetch-hint-1").onclick = () => {
-		showResults(
-			`/api/v1/data/class/${classId}`,
-			response,
-			JSON.stringify(data, null, 4)
-		);
-	};
+	if (DEV_MODE) {
+		document.getElementById("fetch-hint-1").onclick = () => {
+			showResults(
+				`/api/v1/data/class/${classId}`,
+				response,
+				JSON.stringify(data, null, 4)
+			);
+		};
+	}
 }
 
 function addClass() {
@@ -295,13 +297,15 @@ async function clickOnClassesDetailsBtn() {
 			});
 	}
 
-	document.getElementById("fetch-hint-1").onclick = () => {
-		showResults(
-			"/api/v1/data/get-classes",
-			response,
-			JSON.stringify(data, null, 4)
-		);
-	};
+	if (DEV_MODE) {
+		document.getElementById("fetch-hint-1").onclick = () => {
+			showResults(
+				"/api/v1/data/get-classes",
+				response,
+				JSON.stringify(data, null, 4)
+			);
+		};
+	}
 }
 
 btnDetailsClasses.onclick = async () => {
@@ -340,13 +344,15 @@ btnImportClasses.onclick = async () => {
 		}
 	};
 
-	document.getElementById("fetch-hint-1").onclick = () => {
-		showResults(
-			"/api/v1/import/untis/classes",
-			response,
-			JSON.stringify(data, null, 4)
-		);
-	};
+	if (DEV_MODE) {
+		document.getElementById("fetch-hint-1").onclick = () => {
+			showResults(
+				"/api/v1/import/untis/classes",
+				response,
+				JSON.stringify(data, null, 4)
+			);
+		};
+	}
 };
 
 async function clickOnUserCard(id) {
@@ -405,29 +411,31 @@ async function clickOnUserCard(id) {
 		<button id="delete-user-btn" class="destructive">Benutzer löschen</button>
 	`);
 
-	document.getElementById("fetch-hint-1").onclick = () => {
-		showResults(
-			`/api/v1/data/user/${userId}`,
-			response,
-			JSON.stringify(data, null, 4)
-		);
-	};
+	if (DEV_MODE) {
+		document.getElementById("fetch-hint-1").onclick = () => {
+			showResults(
+				`/api/v1/data/user/${userId}`,
+				response,
+				JSON.stringify(data, null, 4)
+			);
+		};
 
-	document.getElementById("fetch-hint-2").onclick = () => {
-		showResults(
-			"/api/v1/data/roles",
-			rolesResponse,
-			JSON.stringify(rolesData, null, 4)
-		);
-	};
+		document.getElementById("fetch-hint-2").onclick = () => {
+			showResults(
+				"/api/v1/data/roles",
+				rolesResponse,
+				JSON.stringify(rolesData, null, 4)
+			);
+		};
 
-	document.getElementById("fetch-hint-3").onclick = () => {
-		showResults(
-			"/api/v1/data/get-classes",
-			classesResponse,
-			JSON.stringify(classesData, null, 4)
-		);
-	};
+		document.getElementById("fetch-hint-3").onclick = () => {
+			showResults(
+				"/api/v1/data/get-classes",
+				classesResponse,
+				JSON.stringify(classesData, null, 4)
+			);
+		};
+	}
 
 	setTimeout(() => {
 		new Choices("#roleSelect", {
@@ -649,21 +657,23 @@ async function addUser() {
 		}
 	};
 
-	document.getElementById("fetch-hint-1").onclick = () => {
-		showResults(
-			"/api/v1/data/roles",
-			rolesResponse,
-			JSON.stringify(rolesData)
-		);
-	};
+	if (DEV_MODE) {
+		document.getElementById("fetch-hint-1").onclick = () => {
+			showResults(
+				"/api/v1/data/roles",
+				rolesResponse,
+				JSON.stringify(rolesData)
+			);
+		};
 
-	document.getElementById("fetch-hint-2").onclick = () => {
-		showResults(
-			"/api/v1/data/get-classes",
-			classesResponse,
-			JSON.stringify(classesData, null, 4)
-		);
-	};
+		document.getElementById("fetch-hint-2").onclick = () => {
+			showResults(
+				"/api/v1/data/get-classes",
+				classesResponse,
+				JSON.stringify(classesData, null, 4)
+			);
+		};
+	}
 }
 
 async function clickOnUsersDetailsBtn() {
@@ -749,13 +759,15 @@ async function clickOnUsersDetailsBtn() {
 			addUser();
 		};
 
-		document.getElementById("fetch-hint-1").onclick = () => {
-			showResults(
-				`/api/v1/data/get-users?page=${page}`,
-				response,
-				JSON.stringify(data, null, 4)
-			);
-		};
+		if (DEV_MODE) {
+			document.getElementById("fetch-hint-1").onclick = () => {
+				showResults(
+					`/api/v1/data/get-users?page=${page}`,
+					response,
+					JSON.stringify(data, null, 4)
+				);
+			};
+		}
 	};
 
 	loadUsersPage(1);
@@ -798,13 +810,15 @@ btnImportUsers.onclick = async () => {
 		}
 	};
 
-	document.getElementById("fetch-hint-1").onclick = () => {
-		showResults(
-			"/api/v1/import/untis/users",
-			response,
-			JSON.stringify(data, null, 4)
-		);
-	};
+	if (DEV_MODE) {
+		document.getElementById("fetch-hint-1").onclick = () => {
+			showResults(
+				"/api/v1/import/untis/users",
+				response,
+				JSON.stringify(data, null, 4)
+			);
+		};
+	}
 };
 
 async function clickOnWlanCodeCard(id) {
@@ -860,21 +874,23 @@ async function clickOnWlanCodeCard(id) {
 		<button id="delete-code-btn" class="destructive">WLAN-Code löschen</button>
 	`);
 
-	document.getElementById("fetch-hint-1").onclick = () => {
-		showResults(
-			`/api/v1/data/wlan-code/${codeId}`,
-			response,
-			JSON.stringify(data, null, 4)
-		);
-	};
+	if (DEV_MODE) {
+		document.getElementById("fetch-hint-1").onclick = () => {
+			showResults(
+				`/api/v1/data/wlan-code/${codeId}`,
+				response,
+				JSON.stringify(data, null, 4)
+			);
+		};
 
-	document.getElementById("fetch-hint-2").onclick = () => {
-		showResults(
-			"/api/v1/data/get-users?all=true",
-			responseUsers,
-			JSON.stringify(dataUsers, null, 4)
-		);
-	};
+		document.getElementById("fetch-hint-2").onclick = () => {
+			showResults(
+				"/api/v1/data/get-users?all=true",
+				responseUsers,
+				JSON.stringify(dataUsers, null, 4)
+			);
+		};
+	}
 
 	setTimeout(() => {
 		const choices = new Choices("#userSelect", {
@@ -994,13 +1010,15 @@ async function addWlanCode() {
 		<button id="create-code-btn">WLAN-Code erstellen</button>
 	`);
 
-	document.getElementById("fetch-hint-1").onclick = () => {
-		showResults(
-			"/api/v1/data/get-users?all=true",
-			response,
-			JSON.stringify(data, null, 4)
-		);
-	};
+	if (DEV_MODE) {
+		document.getElementById("fetch-hint-1").onclick = () => {
+			showResults(
+				"/api/v1/data/get-users?all=true",
+				response,
+				JSON.stringify(data, null, 4)
+			);
+		};
+	}
 
 	setTimeout(() => {
 		new Choices("#userSelect", {
@@ -1091,9 +1109,15 @@ async function clickOnWlanCodesDetailsBtn() {
 		</div>
 	`);
 
-	document.getElementById("fetch-hint-1").onclick = () => {
-		showResults("/api/v1/wlan/", response, JSON.stringify(data, null, 4));
-	};
+	if (DEV_MODE) {
+		document.getElementById("fetch-hint-1").onclick = () => {
+			showResults(
+				"/api/v1/wlan/",
+				response,
+				JSON.stringify(data, null, 4)
+			);
+		};
+	}
 
 	document
 		.getElementById("wlan-codes-container")
@@ -1136,13 +1160,15 @@ async function clickOnTutoringDetailsBtn() {
 		${offers}
 	`);
 
-	document.getElementById("fetch-hint-1").onclick = () => {
-		showResults(
-			"/api/v1/tutoring/all-tutors",
-			response,
-			JSON.stringify(data, null, 4)
-		);
-	};
+	if (DEV_MODE) {
+		document.getElementById("fetch-hint-1").onclick = () => {
+			showResults(
+				"/api/v1/tutoring/all-tutors",
+				response,
+				JSON.stringify(data, null, 4)
+			);
+		};
+	}
 }
 
 btnDetailsTutoring.onclick = async () => {
@@ -1269,13 +1295,15 @@ async function viewFeedback(id) {
 		<button onclick="closeModal()">OK</button>
 	`);
 
-	document.getElementById("fetch-hint-1").onclick = () => {
-		showResults(
-			`/api/v1/parentnotification/feedback/${notificationId}`,
-			response,
-			JSON.stringify(data, null, 4)
-		);
-	};
+	if (DEV_MODE) {
+		document.getElementById("fetch-hint-1").onclick = () => {
+			showResults(
+				`/api/v1/parentnotification/feedback/${notificationId}`,
+				response,
+				JSON.stringify(data, null, 4)
+			);
+		};
+	}
 }
 
 async function clickOnParentNotificationCard(id) {
@@ -1389,13 +1417,15 @@ async function clickOnParentNotificationCard(id) {
 		</button>
 	`);
 
-	document.getElementById("fetch-hint-1").onclick = () => {
-		showResults(
-			"/api/v1/parentnotification/list",
-			response,
-			JSON.stringify(data, null, 4)
-		);
-	};
+	if (DEV_MODE) {
+		document.getElementById("fetch-hint-1").onclick = () => {
+			showResults(
+				"/api/v1/parentnotification/list",
+				response,
+				JSON.stringify(data, null, 4)
+			);
+		};
+	}
 }
 
 async function addParentNotification() {
@@ -1447,21 +1477,23 @@ async function addParentNotification() {
 	<button id="create-pn-button">Elternbrief erstellen</button>
 	`);
 
-	document.getElementById("fetch-hint-1").onclick = () => {
-		showResults(
-			"/api/v1/data/get-users?all=true",
-			response,
-			JSON.stringify(data, null, 4)
-		);
-	};
+	if (DEV_MODE) {
+		document.getElementById("fetch-hint-1").onclick = () => {
+			showResults(
+				"/api/v1/data/get-users?all=true",
+				response,
+				JSON.stringify(data, null, 4)
+			);
+		};
 
-	document.getElementById("fetch-hint-2").onclick = () => {
-		showResults(
-			"/api/v1/data/get-files",
-			filesResponse,
-			JSON.stringify(filesData, null, 4)
-		);
-	};
+		document.getElementById("fetch-hint-2").onclick = () => {
+			showResults(
+				"/api/v1/data/get-files",
+				filesResponse,
+				JSON.stringify(filesData, null, 4)
+			);
+		};
+	}
 
 	setTimeout(() => {
 		new Choices("#users", {
@@ -1754,13 +1786,15 @@ async function sendPush() {
 		});
 	}, 50);
 
-	document.getElementById("fetch-hint-1").onclick = () => {
-		showResults(
-			"/api/v1/data/get-users?all=true",
-			response,
-			JSON.stringify(data, null, 4)
-		);
-	};
+	if (DEV_MODE) {
+		document.getElementById("fetch-hint-1").onclick = () => {
+			showResults(
+				"/api/v1/data/get-users?all=true",
+				response,
+				JSON.stringify(data, null, 4)
+			);
+		};
+	}
 
 	document.getElementById("push-send-all").onchange = (e) => {
 		const pushUsersSelectContainer = document.getElementById(
