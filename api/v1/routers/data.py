@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Body, Depends, Query, Request
-from api.v1.deps import LoggedIn, get_db, hash_password
+from api.v1.deps import LoggedIn
 from services.data_service import *
 from definitions import sl_limiter
 

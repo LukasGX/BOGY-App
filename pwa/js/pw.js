@@ -1,7 +1,4 @@
 async function main() {
-	// logged in
-	await getProfile();
-
 	// get main elements
 	const noneFoundMain = document.getElementById("page-nonefound");
 	const foundSomeMain = document.getElementById("page-foundsome");

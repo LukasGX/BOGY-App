@@ -1,7 +1,8 @@
+from datetime import date
+
 from definitions import UNTIS_USERNAME, UNTIS_PASSWORD
 import requests
 import json
-import base64
 
 BASE_URL = "https://bogy.webuntis.com"
 SCHOOL = "bogy"

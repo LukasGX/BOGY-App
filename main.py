@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
@@ -10,7 +10,7 @@ from slowapi.errors import RateLimitExceeded
 from starlette.middleware.sessions import SessionMiddleware
 
 # import deps
-from api.v1.deps import get_db
+from api.v1.deps import LoggedIn, get_db
 
 # import routers
 from api.v1.routers import administration, wlan, push, tutoring, parentnotification, user, data, admin_dashboard, pw, importing
@@ -58,8 +58,35 @@ class NoCacheStaticFiles(StaticFiles):
         resp.headers["Pragma"] = "no-cache"
         resp.headers["Expires"] = "0"
         return resp
+    
+class AuthPWA(NoCacheStaticFiles):
+    async def __call__(self, scope, receive, send):
+        if scope["type"] != "http":
+            await super().__call__(scope, receive, send)
+            return
+            
+        request = Request(scope)
+        path = request.url.path
+        
+        if path == "/app/login.html" or path == "/app/wrong_credentials.html" or path.startswith("/app/resources/") or path.startswith("/app/js/") or path.startswith("/app/css/") or path == "/app/favicon.ico":
+            await super().__call__(scope, receive, send)
+            return
+        
+        try:
+            session_data = await LoggedIn(request=request)
+        except HTTPException:
+            await send({
+                'type': 'http.response.start',
+                'status': 302,
+                'headers': [[b'location', b'/app/login.html']],
+            })
+            await send({'type': 'http.response.body', 'body': b''})
+            return
+            
+        await super().__call__(scope, receive, send)
 
-app.mount("/app", StaticFiles(directory="pwa", html=True), name="pwa")
+app.mount("/app", AuthPWA(directory="pwa", html=True), name="pwa")
+
 app.mount("/static", NoCacheStaticFiles(directory="static", html=True), name="static")
 app.mount("/files", StaticFiles(directory="public_files"), name="files")
 
