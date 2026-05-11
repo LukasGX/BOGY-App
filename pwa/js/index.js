@@ -81,9 +81,6 @@ async function checkPushStatus() {
 
 checkPushStatus();
 
-// check login
-getProfile();
-
 // check for wlan codes
 async function wlanCodesCheck() {
 	const response = await fetch("/api/v1/wlan/");
