@@ -23,6 +23,24 @@ body {
 	color: #333;
 	line-height: 1.5;
 	padding: 1rem;
+	padding-bottom: 3rem;
+}
+
+.fat {
+	font-weight: 700;
+}
+
+/* BETA NOTICE */
+#beta-notice {
+	background: var(--bg-card);
+	border: none;
+	width: 100%;
+	position: fixed;
+	left: 0;
+	bottom: 0;
+	padding: 0.6rem;
+	margin-top: 2rem;
+	font-size: 0.7rem;
 }
 
 /* Clean Header */
