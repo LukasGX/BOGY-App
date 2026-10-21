@@ -1,14 +1,20 @@
 self.addEventListener("push", (event) => {
-	const data = event.data ? event.data.json() : {};
+	let data = {};
+	try {
+		data = event.data ? event.data.json() : {};
+	} catch (e) {
+		data = { title: "BOGY-App", body: event.data ? event.data.text() : "" };
+	}
+
 	const options = {
 		body: data.body,
-		icon: "/icon-192.png",
-		badge: "/badge-72.png",
+		icon: data.icon || "/app/resources/logo.png",
+		badge: data.badge || "/app/resources/logo.png",
 		vibrate: [100, 50, 100],
 		data: { url: "/app/index.html" }
 	};
 
-	event.waitUntil(self.registration.showNotification(data.title, options));
+	event.waitUntil(self.registration.showNotification(data.title || "BOGY-App", options));
 });
 
 self.addEventListener("notificationclick", (event) => {

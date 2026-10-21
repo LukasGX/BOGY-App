@@ -2,7 +2,7 @@ import json
 import secrets
 import sqlite3
 from fastapi import HTTPException
-from pywebpush import webpush
+from pywebpush import WebPushException, webpush
 from api.v1.deps import get_db, hash_password
 from definitions import VAPID_PRIVATE_KEY, VAPID_EMAIL
 
@@ -22,10 +22,13 @@ def create_user_s(payload):
             if not cursor.fetchone():
                 raise HTTPException(status_code=400, detail="Invalid class")
         # hash password
-        if (payload.password is None):
+        # Ein leeres Passwort wird wie "kein Passwort" behandelt, sonst waere
+        # ein Login mit leerem Passwort moeglich.
+        if not payload.password:
             pw = secrets.token_hex(8)
             hashed = hash_password(pw)
         else:
+            pw = None
             hashed = hash_password(payload.password)
         try:
             cursor.execute(
@@ -36,7 +39,7 @@ def create_user_s(payload):
             user_id = cursor.lastrowid
         except sqlite3.IntegrityError:
             raise HTTPException(status_code=400, detail="Username already exists")
-        return {"id": user_id, "username": payload.username, "role": payload.role, "password": pw if payload.password is None else "Provided by user"}
+        return {"id": user_id, "username": payload.username, "role": payload.role, "password": pw if pw is not None else "Provided by user"}
     
 def create_class_s(payload):
     with get_db() as conn:
@@ -54,20 +57,26 @@ def push_all(title, body):
         cursor = conn.cursor()
         cursor.execute("SELECT endpoint, p256dh, auth FROM push_subscriptions")
         subs = [{"endpoint":r["endpoint"], "keys":{"p256dh":r["p256dh"],"auth":r["auth"]}} for r in cursor.fetchall()]
-        
+
         successful = 0
         for sub_dict in subs:
             try:
                 webpush(
                     subscription_info=sub_dict,
-                    data=json.dumps({"title": title, "body": body, "icon": "/icon.png"}),
+                    data=json.dumps({"title": title, "body": body, "icon": "/app/resources/logo.png"}),
                     vapid_private_key=VAPID_PRIVATE_KEY,
                     vapid_claims={"sub": f"mailto:{VAPID_EMAIL}"}
                 )
                 successful += 1
+            except WebPushException as e:
+                # 410 = Endpoint nicht mehr valide -> Subscription entfernen
+                if getattr(e.response, "status_code", None) == 410:
+                    cursor.execute("DELETE FROM push_subscriptions WHERE endpoint = ?", (sub_dict["endpoint"],))
+                    conn.commit()
+                print(f"Failed {sub_dict['endpoint'][:50]}... - {e}")
             except Exception as e:
                 print(f"Failed {sub_dict['endpoint'][:50]}... - {e}")
-        
+
         return {"sent": successful, "failed": len(subs)-successful, "total": len(subs)}
     
 def push_user(user_id, title, body):
@@ -88,11 +97,17 @@ def push_user(user_id, title, body):
             try:
                 webpush(
                     subscription_info=sub_dict,
-                    data=json.dumps({"title": title, "body": body, "icon": "/icon.png"}),
+                    data=json.dumps({"title": title, "body": body, "icon": "/app/resources/logo.png"}),
                     vapid_private_key=VAPID_PRIVATE_KEY,
                     vapid_claims={"sub": f"mailto:{VAPID_EMAIL}"}
                 )
                 successful += 1
+            except WebPushException as e:
+                # 410 = Endpoint nicht mehr valide -> Subscription entfernen
+                if getattr(e.response, "status_code", None) == 410:
+                    cursor.execute("DELETE FROM push_subscriptions WHERE endpoint = ?", (sub_dict["endpoint"],))
+                    conn.commit()
+                print(f"Failed user {user_id}: {sub_dict['endpoint'][:50]}... - {e}")
             except Exception as e:
                 print(f"Failed user {user_id}: {sub_dict['endpoint'][:50]}... - {e}")
         
@@ -139,6 +154,17 @@ def delete_class_s(class_id):
 def delete_user_s(user_id):
     with get_db() as conn:
         cursor = conn.cursor()
+
+        cursor.execute("SELECT id FROM users WHERE id = ?", (user_id,))
+        if not cursor.fetchone():
+            raise HTTPException(status_code=404, detail="User not found")
+
+        # Abhaengige Datensaetze zuerst entfernen, damit keine Leichen
+        # zurueckbleiben (und Foreign Keys greifen).
+        cursor.execute("DELETE FROM tutoring WHERE user = ?", (user_id,))
+        cursor.execute("DELETE FROM push_subscriptions WHERE user_id = ?", (user_id,))
+        cursor.execute("DELETE FROM secrets WHERE user_id = ?", (user_id,))
+        cursor.execute("DELETE FROM user_keys WHERE user_id = ?", (user_id,))
 
         cursor.execute("DELETE FROM users WHERE id = ?", (user_id,))
         if cursor.rowcount == 0:

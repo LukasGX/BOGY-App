@@ -1,5 +1,8 @@
 import os
+import sqlite3
 from pathlib import Path
+
+from fastapi import HTTPException
 
 from api.v1.deps import get_db, hash_password
 
@@ -50,12 +53,14 @@ def get_class_s(class_id, session_data):
     with get_db() as conn:
         cursor = conn.cursor()
 
+        # Wichtig: COUNT(DISTINCT ...), da zwei LEFT JOINs auf dieselbe Tabelle
+        # sonst ein Kreuzprodukt erzeugen (3 Schueler x 2 Lehrer = 6 Zeilen).
         cursor.execute("""
             SELECT
                 c.id,
                 c.name,
-                COUNT(u.id) AS student_count,
-                COUNT(u2.id) AS others_count
+                COUNT(DISTINCT u.id) AS student_count,
+                COUNT(DISTINCT u2.id) AS others_count
             FROM classes c
             LEFT JOIN users u
                 ON u.class = c.id
@@ -111,7 +116,10 @@ def update_class_s(class_id, new_name):
         if not cursor.fetchone():
             return {"error": "Class not found"}
 
-        cursor.execute("UPDATE classes SET name = ? WHERE id = ?", (new_name, class_id))
+        try:
+            cursor.execute("UPDATE classes SET name = ? WHERE id = ?", (new_name, class_id))
+        except sqlite3.IntegrityError:
+            raise HTTPException(status_code=400, detail="Class already exists")
         conn.commit()
 
         return {"success": True}
@@ -194,7 +202,10 @@ def update_user_s(user_id, new_role, new_class, new_username, new_firstname, new
         if not cursor.fetchone():
             return {"error": "User not found"}
 
-        cursor.execute("UPDATE users SET role = ?, class = ?, username = ?, firstname = ?, lastname = ? WHERE id = ?", (new_role, new_class, new_username, new_firstname, new_lastname, user_id))
+        try:
+            cursor.execute("UPDATE users SET role = ?, class = ?, username = ?, firstname = ?, lastname = ? WHERE id = ?", (new_role, new_class, new_username, new_firstname, new_lastname, user_id))
+        except sqlite3.IntegrityError:
+            raise HTTPException(status_code=400, detail="Username already exists")
         conn.commit()
 
         return {"success": True}
@@ -239,5 +250,8 @@ def update_wlan_code_s(code_id, new_expiry, new_user_ids):
     
 def get_files_s(session_data):
     path = Path("public_files/")
-    files = [p.name for p in path.iterdir() if p.is_file()]
+    try:
+        files = [p.name for p in path.iterdir() if p.is_file()]
+    except FileNotFoundError:
+        files = []
     return {"files": files}

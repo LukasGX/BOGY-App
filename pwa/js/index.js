@@ -83,30 +83,42 @@ checkPushStatus();
 
 // check for wlan codes
 async function wlanCodesCheck() {
-	const response = await fetch("/api/v1/wlan/");
-	const data = await response.json();
-	const appWlanBox = document.getElementById("app-wlan-box");
+	try {
+		const response = await fetch("/api/v1/wlan/");
+		if (!response.ok) return;
+		const data = await response.json();
+		const appWlanBox = document.getElementById("app-wlan-box");
+		if (!appWlanBox || !data.codes) return;
 
-	if (data.codes.length > 0) {
-		const badge = document.createElement("div");
-		badge.classList.add("badge");
-		badge.textContent = data.codes.length;
-		appWlanBox.appendChild(badge);
+		if (data.codes.length > 0) {
+			const badge = document.createElement("div");
+			badge.classList.add("badge");
+			badge.textContent = data.codes.length;
+			appWlanBox.appendChild(badge);
+		}
+	} catch (err) {
+		console.error("WLAN-Codes konnten nicht geladen werden", err);
 	}
 }
 wlanCodesCheck();
 
 // check for pns
 async function pnCheck() {
-	const response = await fetch("/api/v1/parentnotification/");
-	const data = await response.json();
-	const appPNBox = document.getElementById("app-parentnotification-box");
+	try {
+		const response = await fetch("/api/v1/parentnotification/");
+		if (!response.ok) return;
+		const data = await response.json();
+		const appPNBox = document.getElementById("app-parentnotification-box");
+		if (!appPNBox || !data.parent_notifications) return;
 
-	if (data.parent_notifications.length > 0) {
-		const badge = document.createElement("div");
-		badge.classList.add("badge");
-		badge.textContent = data.parent_notifications.length;
-		appPNBox.appendChild(badge);
+		if (data.parent_notifications.length > 0) {
+			const badge = document.createElement("div");
+			badge.classList.add("badge");
+			badge.textContent = data.parent_notifications.length;
+			appPNBox.appendChild(badge);
+		}
+	} catch (err) {
+		console.error("Elternbriefe konnten nicht geladen werden", err);
 	}
 }
 pnCheck();

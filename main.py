@@ -164,7 +164,7 @@ def init_db():
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS wlan_codes (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                user_ids INTEGER NOT NULL,
+                user_ids TEXT NOT NULL,
                 code TEXT NOT NULL,
                 expiry DATETIME NOT NULL,
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP

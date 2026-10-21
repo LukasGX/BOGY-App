@@ -16,6 +16,10 @@ services:
       - ./.env:/app/.env:ro
     environment:
       - ENV=production
+      # Admin-Passwort beim ersten Start setzen (siehe .env)
+      # - ADMIN_PASSWORD=...
+      # Optional: anderer Pfad fuer die SQLite-Datenbank
+      # - DB_PATH=/app/data/data.db
     restart: unless-stopped
     networks:
       - bogy-app-network

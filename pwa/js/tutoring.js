@@ -46,15 +46,7 @@ async function main() {
 	const searchForm = document.querySelector(".search-form");
 	const resultsEl = document.getElementById("search-results");
 
-	function escapeHtml(str) {
-		if (!str && str !== 0) return "";
-		return String(str)
-			.replace(/&/g, "&amp;")
-			.replace(/</g, "&lt;")
-			.replace(/>/g, "&gt;")
-			.replace(/"/g, "&quot;")
-			.replace(/'/g, "&#39;");
-	}
+	// escapeHtml wird in js/methods.js bereitgestellt (auf allen Seiten geladen)
 
 	if (searchForm && resultsEl) {
 		searchForm.addEventListener("submit", async (ev) => {

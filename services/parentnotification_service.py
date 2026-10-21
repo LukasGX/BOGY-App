@@ -1,6 +1,7 @@
 import json
 import os
 from pathlib import Path
+import tempfile
 
 import portalocker
 from fastapi import HTTPException
@@ -38,12 +39,12 @@ def get_parentnotifications_s(session_data, filter_user_id=True):
         notifications = cursor.fetchall()
 
         if filter_user_id:
-            for notification in notifications:
-                user_ids = notification["user_ids"].split(";")
-                if user_ids[0] == "all": pass
-                else:
-                    if str(session_data["user_id"]) in user_ids: pass
-                    else: notifications.remove(notification)
+            # Neue Liste bauen statt waehrend der Iteration zu entfernen
+            # (remove() wuerde sonst jedes zweite Element ueberspringen).
+            notifications = [
+                n for n in notifications
+                if _user_is_recipient(n["user_ids"], session_data["user_id"])
+            ]
 
         return {"parent_notifications": notifications}
 
@@ -63,32 +64,37 @@ def feedback_s(session_data, notification_id, feedback):
         file = Path(FEEDBACK_DIR) / f"{notification_id}.json"
         file.parent.mkdir(parents=True, exist_ok=True)
 
-        if not os.path.exists(file):
-            with open(file, 'w') as f:
-                f.write("")
+        # Ein eigener Lock-File serialisiert gleichzeitige Schreibvorgaenge.
+        # Die eigentliche Datei wird atomar ersetzt, damit Leser nie eine
+        # halb geschriebene Datei sehen.
+        lock_path = file.with_name(file.name + ".lock")
+        with portalocker.Lock(str(lock_path), mode="w", timeout=10):
+            data = {}
+            if file.exists():
+                try:
+                    with open(file, "r", encoding="utf-8") as f:
+                        data = json.load(f)
+                except (json.JSONDecodeError, ValueError, OSError):
+                    data = {}
 
-        with open(file, 'r+', encoding='utf-8') as f:
-            portalocker.lock(f, portalocker.LOCK_EX)
-
-            f.seek(0)
-
-            try:
-                data = json.load(f)
-            except:
+            if not isinstance(data, dict):
                 data = {}
-
-            if "feedbacks" not in data:
+            if not isinstance(data.get("feedbacks"), dict):
                 data["feedbacks"] = {}
 
-            user_id = str(session_data["user_id"])
-            data["feedbacks"][user_id] = feedback
+            data["feedbacks"][str(session_data["user_id"])] = feedback
 
-            f.seek(0)
-            f.truncate()
-            json.dump(data, f, indent=4)
-            f.flush()
-
-            portalocker.unlock(f)
+            fd, tmp_path = tempfile.mkstemp(dir=str(file.parent), prefix=file.name, suffix=".tmp")
+            try:
+                with os.fdopen(fd, "w", encoding="utf-8") as f:
+                    json.dump(data, f, indent=4, ensure_ascii=False)
+                    f.flush()
+                    os.fsync(f.fileno())
+                os.replace(tmp_path, file)
+            except Exception:
+                if os.path.exists(tmp_path):
+                    os.unlink(tmp_path)
+                raise
 
     return {"status": "success"}
 
@@ -103,11 +109,14 @@ def get_feedback_s(session_data, notification_id):
 
         file = Path(FEEDBACK_DIR) / f"{notification_id}.json"
 
-        if not os.path.exists(file):
+        if not file.exists():
             return {"notification": notification_id, "notification_title": check_row["title"], "error": "Notification feedback not found"}
 
-        with open(file, "r", encoding='utf-8') as f:
-            data = json.load(f)
+        try:
+            with open(file, "r", encoding="utf-8") as f:
+                data = json.load(f)
+        except (json.JSONDecodeError, ValueError, OSError):
+            data = {}
 
         return {"notification": notification_id, "notification_title": check_row["title"], "data": data}
 
@@ -117,3 +126,4 @@ def create_parentnotification_s(session_data, title, body, feedback, attachments
         cursor = conn.cursor()
         cursor.execute("INSERT INTO parentnotifications (title, body, feedback, attachments, user_ids) VALUES (?, ?, ?, ?, ?)", (title, body, feedback, attachments, user_ids,))
         conn.commit()
+        return {"id": cursor.lastrowid, "status": "success"}

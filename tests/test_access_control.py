@@ -171,6 +171,9 @@ def unescaped_interpolations(source):
         if "subtitle:" in line:
             # Suchergebnis, wird beim Rendern escaped
             continue
+        if "\\t" in line:
+            # Export einer Textdatei, kein HTML
+            continue
         for match in re.finditer(r"\$\{([A-Za-z_][\w.]*)\}", line):
             expression = match.group(1)
             field = expression.split(".")[-1]

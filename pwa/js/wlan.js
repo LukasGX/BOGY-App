@@ -23,19 +23,11 @@ async function main() {
 		const codeEl = document.createElement("div");
 		codeEl.classList.add("code-el");
 
-		// date
-		const date = new Date(code.expiry);
-		const dtString = date.toLocaleString("de-DE", {
-			day: "2-digit",
-			month: "2-digit",
-			year: "numeric",
-			hour: "2-digit",
-			minute: "2-digit",
-			hour12: false
-		});
+		// date (lokale Zeit, Format aus der DB ist nicht ISO-kompatibel)
+		const dtString = formatLocalDateTime(code.expiry);
 
 		codeEl.innerHTML = `
-        <span class="code">${code.code}</span> <span class="expiry">gültig bis ${dtString}</span>
+        <span class="code">${escapeHtml(code.code)}</span> <span class="expiry">gültig bis ${escapeHtml(dtString)}</span>
         `;
 		codesEl.appendChild(codeEl);
 	});

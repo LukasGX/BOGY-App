@@ -1,7 +1,9 @@
 from fastapi import APIRouter, Depends, Request
 from fastapi.params import Body
+import asyncio
 from api.v1.deps import require_role
 from services.administration_service import *
+from services.wlan_service import get_all_wlan_codes
 from payloads import CreateUserRequest, CreateClassRequest
 from definitions import sl_limiter
 
@@ -20,7 +22,8 @@ async def create_class(request: Request, payload: CreateClassRequest, session_da
 @router.post("/send-all")
 @sl_limiter.limit("10/hour")
 async def send_push_all(request: Request, title: str = Body(..., max_length=100, embed=True), body: str = Body(..., max_length=800, embed=True), session_data: dict = Depends(require_role(4))):
-    return push_all(title, body)
+    # Das Senden blockiert (Netzwerk-I/O) -> nicht im Event-Loop ausfuehren
+    return await asyncio.to_thread(push_all, title, body)
 
 @router.post("/send-user")
 @sl_limiter.limit("200/hour")
@@ -31,7 +34,8 @@ async def send_push_user(
     body: str = Body(..., max_length=800, embed=True), 
     session_data: dict = Depends(require_role(4))
 ):
-    return push_user(user_id, title, body)
+    # Das Senden blockiert (Netzwerk-I/O) -> nicht im Event-Loop ausfuehren
+    return await asyncio.to_thread(push_user, user_id, title, body)
 
 @router.delete("/class/{class_id}")
 @sl_limiter.limit("10/minute")
@@ -52,6 +56,12 @@ async def reset_user_password(request: Request, user_id: int, session_data: dict
 @sl_limiter.limit("10/minute")
 async def add_wlan_code(request: Request, code: str = Body(embed=True), user_ids: str = Body(embed=True), expiry: str = Body(embed=True), session_data: dict = Depends(require_role(4))):
     return add_wlan_code_s(user_ids, code, expiry)
+
+# Alle Codes unabhaengig vom Empfaenger - fuer das Admin-Dashboard.
+@router.get("/wlan-codes")
+@sl_limiter.limit("5/second")
+async def list_wlan_codes(request: Request, session_data: dict = Depends(require_role(4))):
+    return get_all_wlan_codes()
 
 @router.delete("/wlan-code/{code_id}")
 @sl_limiter.limit("10/minute")

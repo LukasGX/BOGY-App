@@ -9,6 +9,10 @@ SCHOOL = "bogy"
 USERNAME = UNTIS_USERNAME
 PASSWORD = UNTIS_PASSWORD
 ID = "Awesome"
+
+# Timeout, damit ein haengender Untis-Server nicht den Worker blockiert
+TIMEOUT = 30
+
 def login():
     session = requests.Session()
     session.headers.update({
@@ -32,8 +36,14 @@ def login():
 
     response = session.post(
         f"{BASE_URL}/WebUntis/jsonrpc.do?school={SCHOOL}",
-        data=json.dumps(login_payload)
+        data=json.dumps(login_payload),
+        timeout=TIMEOUT
     )
+
+    # Fehlgeschlagene Anmeldung nicht ignorieren, sonst laufen alle
+    # Folgeaufrufe ins Leere.
+    if "error" in response.text:
+        raise RuntimeError(f"Untis-Login fehlgeschlagen: {response.text[:200]}")
 
     return session
 
@@ -49,7 +59,8 @@ def get_classes():
 
     classes_response = session.post(
         f"{BASE_URL}/WebUntis/jsonrpc.do?school={SCHOOL}",
-        data=json.dumps(classes_payload)
+        data=json.dumps(classes_payload),
+        timeout=TIMEOUT
     )
 
     return classes_response.json()
@@ -66,7 +77,8 @@ def get_users():
 
     students_response = session.post(
         f"{BASE_URL}/WebUntis/jsonrpc.do?school={SCHOOL}",
-        data=json.dumps(students_payload)
+        data=json.dumps(students_payload),
+        timeout=TIMEOUT
     )
 
     teachers_payload = {
@@ -77,7 +89,8 @@ def get_users():
     }
     teachers_response = session.post(
         f"{BASE_URL}/WebUntis/jsonrpc.do?school={SCHOOL}",
-        data=json.dumps(teachers_payload)
+        data=json.dumps(teachers_payload),
+        timeout=TIMEOUT
     )
 
     return {"teachers": teachers_response.json(), "students": students_response.json()}

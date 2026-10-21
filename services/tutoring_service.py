@@ -20,13 +20,22 @@ def register(request, session_data):
 
         subjects_field = ",".join(subject_ids) if subject_ids else None
 
+        # Bereits vorhandene Eintraege werden aktualisiert. Andernfalls entstehen
+        # durch mehrfaches Absenden (oder einen Reload) Duplikate in der Tutor-Liste.
+        cursor.execute("SELECT id FROM tutoring WHERE user = ?", (session_data["user_id"],))
+        existing = cursor.fetchone()
+
         try:
-            cursor.execute(
-                "INSERT INTO tutoring(user, subjects) VALUES(?,?)",
-                (session_data["user_id"], subjects_field),
-            )
+            if existing:
+                cursor.execute("UPDATE tutoring SET subjects = ? WHERE user = ?", (subjects_field, session_data["user_id"]))
+                tutoring_id = existing["id"]
+            else:
+                cursor.execute(
+                    "INSERT INTO tutoring(user, subjects) VALUES(?,?)",
+                    (session_data["user_id"], subjects_field),
+                )
+                tutoring_id = cursor.lastrowid
             conn.commit()
-            tutoring_id = cursor.lastrowid
         except sqlite3.IntegrityError:
             raise HTTPException(status_code=400, detail="Could not create tutoring entry")
 
@@ -45,6 +54,8 @@ def edit_profile(request, session_data):
                 raise HTTPException(status_code=400, detail=f"Invalid subject: {name}")
             subject_ids.append(str(s["id"]))
 
+        # Duplikate entfernen
+        subject_ids = list(dict.fromkeys(subject_ids))
         subjects_field = ",".join(subject_ids) if subject_ids else None
 
         cursor.execute("SELECT id FROM tutoring WHERE user = ?", (session_data["user_id"],))
@@ -81,9 +92,11 @@ def search_tutors_s(request):
         searched_ids = {str(r["id"]) for r in found}
 
         # build id->name map for all subjects
-        cursor.execute("SELECT id, name FROM subjects")
+        cursor.execute("SELECT id, name, german_name FROM subjects")
         all_subs = cursor.fetchall()
         id_to_name = {str(r["id"]): r["name"] for r in all_subs}
+        # Labels kommen aus der Datenbank, damit Anzeige und DB nicht auseinanderlaufen
+        id_to_german = {str(r["id"]): r["german_name"] for r in all_subs}
 
         # fetch tutoring entries joined with user info
         cursor.execute(
@@ -139,7 +152,7 @@ def search_tutors_s(request):
                     "class": row["class"],
                     "role": row["role"],
                     "subjects": [
-                        subject_labels.get(id_to_name.get(s, s), id_to_name.get(s, s))
+                        id_to_german.get(s, id_to_name.get(s, subject_labels.get(s, s)))
                         for s in subject_ids
                     ],
                 }

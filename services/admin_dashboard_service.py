@@ -1,11 +1,34 @@
-from datetime import datetime
 import json
+
 from api.v1.deps import get_db
 from services.data_service import get_classes_s, get_users_s
-from services.wlan_service import get_wlan_codes
+from services.wlan_service import get_all_wlan_codes, _parse_expiry
 from services.tutoring_service import all_tutors_s
 from services.parentnotification_service import get_parentnotifications_s
 from definitions import templates
+
+
+def _format_datetime(value):
+    """Formatiert einen Zeitstempel fuer das Dashboard (ohne Absturz bei ungueltigen Werten)."""
+    if not value:
+        return ""
+    dt = _parse_expiry(value)
+    if dt is None:
+        return str(value)
+    return dt.strftime("%d.%m.%Y %H:%M")
+
+
+def _json_len(value):
+    """Laenge eines JSON-Feldes; ungueltiges JSON liefert 0 statt einer Exception."""
+    try:
+        parsed = json.loads(value) if value else []
+    except (json.JSONDecodeError, ValueError, TypeError):
+        return 0
+    try:
+        return len(parsed)
+    except TypeError:
+        return 0
+
 
 def root_s(request, session_data):
     with get_db() as conn:
@@ -15,19 +38,13 @@ def root_s(request, session_data):
         users_raw = get_users_s()
         users = users_raw.get("users", [])
 
-        wlan_codes_raw = get_wlan_codes(session_data)
+        # Alle Codes (nicht nur die der eigenen User-ID) - die Verwaltung
+        # sieht sonst keine Codes, die an Schueler gebunden sind.
+        wlan_codes_raw = get_all_wlan_codes()
         wlan_codes = wlan_codes_raw.get("codes", [])
 
         for code in wlan_codes:
-            if code.get('expiry'):
-                try:
-                    expiry_str = code['expiry'].replace('Z', '+00:00')
-                    dt = datetime.strptime(expiry_str, '%Y-%m-%d %H:%M:%S.%f')
-                    code['expiry_formatted'] = dt.strftime('%d.%m.%Y %H:%M')
-                except ValueError:
-                    code['expiry_formatted'] = code['expiry']
-            else:
-                code['expiry_formatted'] = 'Kein Ablaufdatum'
+            code["expiry_formatted"] = _format_datetime(code.get("expiry")) or "Kein Ablaufdatum"
 
         tutors_raw = all_tutors_s()
         tutors = tutors_raw.get("results", [])
@@ -36,15 +53,10 @@ def root_s(request, session_data):
         notifications = [dict(row) for row in notifications_raw.get("parent_notifications", [])]
 
         for pn in notifications:
-            pn["feedback_field_count"] = len(json.loads(pn["feedback"]))
-            pn["attachments_count"] = len(json.loads(pn["attachments"]))
-            try:
-                expiry_str = pn['created_at'].replace('Z', '+00:00')
-                dt = datetime.strptime(expiry_str, '%Y-%m-%d %H:%M:%S')
-                pn['date'] = dt.strftime('%d.%m.%Y %H:%M')
-            except ValueError:
-                pn['date'] = pn['created_at']
-            
+            pn["feedback_field_count"] = _json_len(pn.get("feedback"))
+            pn["attachments_count"] = _json_len(pn.get("attachments"))
+            pn["date"] = _format_datetime(pn.get("created_at"))
+
         context = {
             "request": request,
             "username": session_data.get("username", ""),

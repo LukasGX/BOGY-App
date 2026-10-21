@@ -47,12 +47,37 @@ async function main() {
 		return output;
 	}
 
+	// Sammelt die Antworten des Feedback-Formulars
+	function collectFeedback(notificationEl, fields) {
+		const result = {};
+		fields.forEach((f) => {
+			const inputName = `input-${f.id}`;
+			if (f.type === "single-choice") {
+				const checked = notificationEl.querySelector(
+					`input[name="${inputName}"]:checked`
+				);
+				result[String(f.id)] = checked ? checked.value : "";
+			} else {
+				const input = notificationEl.querySelector(
+					`input[name="${inputName}"]`
+				);
+				result[String(f.id)] = input ? input.value : "";
+			}
+		});
+		return result;
+	}
+
 	data.parent_notifications.forEach((notification) => {
 		const notificationEl = document.createElement("div");
 		notificationEl.classList.add("notification-el");
 
 		// attachments
-		const att = JSON.parse(notification.attachments);
+		let att = [];
+		try {
+			att = JSON.parse(notification.attachments || "[]");
+		} catch (e) {
+			att = [];
+		}
 		const attachments =
 			att.length == 1 ? "1 Anhang" : `${att.length} Anhänge`;
 		const attachmentsEl =
@@ -72,7 +97,12 @@ async function main() {
 				: `<span class="mini-info">Keine Anhänge</span>`;
 
 		// feedback
-		const feedback = JSON.parse(notification.feedback);
+		let feedback = [];
+		try {
+			feedback = JSON.parse(notification.feedback || "[]");
+		} catch (e) {
+			feedback = [];
+		}
 		const feedbackEl =
 			feedback.length > 0
 				? `
@@ -88,20 +118,13 @@ async function main() {
                             `
 						)
 						.join("")}
-					<button class="small">Senden</button>
+					<button class="small send-feedback-btn">Senden</button>
                 </details>`
 				: `<span class="mini-info">Keine Rückmeldung</span>`;
 
 		// date
-		const date = new Date(notification.created_at);
-		const dtString = date.toLocaleString("de-DE", {
-			day: "2-digit",
-			month: "2-digit",
-			year: "numeric",
-			hour: "2-digit",
-			minute: "2-digit",
-			hour12: false
-		});
+		const dtString = formatLocalDateTime(notification.created_at);
+
 		notificationEl.innerHTML = `
             <div>
                 <span class="title">${escapeHtml(notification.title)}</span>
@@ -112,6 +135,39 @@ async function main() {
             <span class="mini-info">erstellt am ${escapeHtml(dtString)}</span>
         `;
 		notificationsEl.appendChild(notificationEl);
+
+		// Feedback absenden
+		const sendBtn = notificationEl.querySelector(".send-feedback-btn");
+		if (sendBtn) {
+			sendBtn.onclick = async () => {
+				const payload = collectFeedback(notificationEl, feedback);
+				sendBtn.disabled = true;
+				try {
+					const res = await fetch("/api/v1/parentnotification/feedback", {
+						method: "POST",
+						headers: { "Content-Type": "application/json" },
+						body: JSON.stringify({
+							notification_id: notification.id,
+							feedback: payload
+						})
+					});
+					if (!res.ok) {
+						const err = await res.json().catch(() => ({}));
+						alert(
+							err.detail || "Fehler beim Senden der Rückmeldung."
+						);
+						return;
+					}
+					alert("Rückmeldung gesendet.");
+					sendBtn.textContent = "Gesendet";
+				} catch (err) {
+					console.error(err);
+					alert("Netzwerkfehler: " + err.message);
+				} finally {
+					sendBtn.disabled = false;
+				}
+			};
+		}
 	});
 }
 

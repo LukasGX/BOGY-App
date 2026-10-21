@@ -9,6 +9,42 @@ function escapeHtml(str) {
 		.replace(/'/g, "&#39;");
 }
 
+// Parst einen Zeitstempel aus der Datenbank als lokale Zeit.
+// toISOString() wuerde in ein datetime-local-Feld die UTC-Zeit eintragen
+// und das Ablaufdatum bei jedem Speichern verschieben.
+function parseLocalDate(value) {
+	if (!value) return null;
+	if (value instanceof Date) return value;
+
+	const str = String(value).trim();
+	const m = str.match(
+		/^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2})(?::(\d{2}))?(?:\.\d+)?/
+	);
+	if (m) {
+		return new Date(
+			Number(m[1]),
+			Number(m[2]) - 1,
+			Number(m[3]),
+			Number(m[4]),
+			Number(m[5]),
+			Number(m[6] || 0)
+		);
+	}
+
+	const parsed = new Date(str);
+	return isNaN(parsed.getTime()) ? null : parsed;
+}
+
+// Format fuer <input type="datetime-local"> (lokale Zeit, ohne Zeitzone)
+function toDateTimeLocalValue(date) {
+	if (!date) return "";
+	const pad = (n) => String(n).padStart(2, "0");
+	return (
+		`${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}` +
+		`T${pad(date.getHours())}:${pad(date.getMinutes())}`
+	);
+}
+
 function openModal(content) {
 	const modal = document.createElement("div");
 	modal.className = "modal";
@@ -808,6 +844,7 @@ btnImportUsers.onclick = async () => {
 		const response = await fetch("/api/v1/import/untis/users", {
 			method: "POST"
 		});
+		const importData = await response.json().catch(() => ({}));
 
 		if (!response.ok) {
 			openModal(`
@@ -815,9 +852,46 @@ btnImportUsers.onclick = async () => {
 			<p>Bitte versuchen Sie es erneut.</p>
 			<button onclick="closeModal()">OK</button>
 			`);
+			return;
 		}
-		if (response.ok) {
-			window.location.reload();
+
+		const accounts = importData.accounts || [];
+		const rows = accounts
+			.map(
+				(acc) =>
+					`<tr><td>${escapeHtml(acc.username)}</td><td>${escapeHtml(acc.password)}</td></tr>`
+			)
+			.join("");
+
+		openModal(`
+			<h2>Import abgeschlossen</h2>
+			<p>${importData.created} Benutzer angelegt, ${importData.skipped} übersprungen (bereits vorhanden).</p>
+			${
+				accounts.length
+					? `<table class="feedback-table">
+				<thead><tr><th>Benutzername</th><th>Passwort</th></tr></thead>
+				<tbody>${rows}</tbody>
+			</table>
+			<button id="download-accounts-btn">Konten als Datei speichern</button>`
+					: ""
+			}
+			<button onclick="window.location.reload()">OK</button>
+		`);
+
+		const downloadBtn = document.getElementById("download-accounts-btn");
+		if (downloadBtn) {
+			downloadBtn.onclick = () => {
+				const content = accounts
+					.map((acc) => `${acc.username}\t${acc.password}`)
+					.join("\n");
+				const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
+				const url = URL.createObjectURL(blob);
+				const link = document.createElement("a");
+				link.href = url;
+				link.download = "bogy-import-konten.txt";
+				link.click();
+				URL.revokeObjectURL(url);
+			};
 		}
 	};
 
@@ -840,7 +914,9 @@ async function clickOnWlanCodeCard(id) {
 	const response = await fetch(`/api/v1/data/wlan-code/${codeId}`);
 	const data = await response.json();
 
-	const expiryDate = new Date(data.code.expiry.replace("Z", "+00:00"));
+	// Lokale Zeit verwenden: toISOString() wuerde UTC eintragen und das
+	// Ablaufdatum bei jedem Speichern verschieben.
+	const expiryDate = parseLocalDate(data.code.expiry);
 
 	const userIds = data.code.user_ids.split(";");
 	let users;
@@ -867,9 +943,7 @@ async function clickOnWlanCodeCard(id) {
 		${DEV_MODE ? `<p>ID: ${data.code.id}</p>` : ""}
 		<p>Code: ${escapeHtml(data.code.code)}</p>
 		<label for="expiry">Ablaufdatum:</label>
-		<input type="datetime-local" id="expiry" ${DEV_MODE ? `placeholder="expiry"` : ""} value="${expiryDate
-			.toISOString()
-			.slice(0, 16)}" />
+		<input type="datetime-local" id="expiry" ${DEV_MODE ? `placeholder="expiry"` : ""} value="${toDateTimeLocalValue(expiryDate)}" />
 		<select id="userSelect" multiple>
 			<option value="all">Alle Benutzer</option>
 			${dataUsers.users
@@ -1080,7 +1154,8 @@ async function addWlanCode() {
 }
 
 async function clickOnWlanCodesDetailsBtn() {
-	const response = await fetch("/api/v1/wlan/");
+	// Admin-Endpoint: listet ALLE Codes, nicht nur die der eigenen User-ID.
+	const response = await fetch("/api/v1/administration/wlan-codes");
 	const data = await response.json();
 
 	PLUS_SHORTCUT_ACTION = () => {
@@ -1089,17 +1164,18 @@ async function clickOnWlanCodesDetailsBtn() {
 
 	let codes = "";
 	data.codes.forEach((code) => {
-		let expiry_str = code.expiry.replace("Z", "+00:00");
-		let dt = new Date(expiry_str);
+		const dt = parseLocalDate(code.expiry);
 		let expiry = dt
-			.toLocaleString("de-DE", {
-				day: "2-digit",
-				month: "2-digit",
-				year: "numeric",
-				hour: "2-digit",
-				minute: "2-digit"
-			})
-			.replace(",", " ");
+			? dt
+					.toLocaleString("de-DE", {
+						day: "2-digit",
+						month: "2-digit",
+						year: "numeric",
+						hour: "2-digit",
+						minute: "2-digit"
+					})
+					.replace(",", " ")
+			: code.expiry;
 
 		codes += `
 			<div class="element-card wlan-code-card" id="wlancode-${code.id}">
@@ -1123,7 +1199,7 @@ async function clickOnWlanCodesDetailsBtn() {
 	if (DEV_MODE) {
 		document.getElementById("fetch-hint-1").onclick = () => {
 			showResults(
-				"/api/v1/wlan/",
+				"/api/v1/administration/wlan-codes",
 				response,
 				JSON.stringify(data, null, 4)
 			);
@@ -1599,7 +1675,7 @@ async function addParentNotification() {
 			Array.from(
 				document.getElementById("attachments").selectedOptions,
 				(opt) => opt.value
-			)
+			).filter((value) => value !== "none")
 		);
 		const feedbacksEl = document.getElementById("feedback-fields");
 
@@ -1895,7 +1971,7 @@ async function universalSearch() {
 		] = await Promise.all([
 			fetch("/api/v1/data/get-classes"),
 			fetch("/api/v1/data/get-users?all=true"),
-			fetch("/api/v1/wlan/"),
+			fetch("/api/v1/administration/wlan-codes"),
 			fetch("/api/v1/tutoring/all-tutors"),
 			fetch("/api/v1/parentnotification/list")
 		]);
@@ -1940,15 +2016,17 @@ async function universalSearch() {
 				id: `wlancode-${code.id}`,
 				type: "wlan-code",
 				title: code.code,
-				subtitle: `Gültig bis: ${new Date(
-					code.expiry.replace("Z", "+00:00")
-				).toLocaleString("de-DE", {
-					day: "2-digit",
-					month: "2-digit",
-					year: "numeric",
-					hour: "2-digit",
-					minute: "2-digit"
-				})} `,
+				subtitle: `Gültig bis: ${
+					parseLocalDate(code.expiry)
+						? parseLocalDate(code.expiry).toLocaleString("de-DE", {
+								day: "2-digit",
+								month: "2-digit",
+								year: "numeric",
+								hour: "2-digit",
+								minute: "2-digit"
+							})
+						: code.expiry
+				} `,
 				searchText: `${code.code} ${code.user_ids || ""}`.toLowerCase()
 			})),
 			...(tutoringData.results || []).map((offer, index) => ({

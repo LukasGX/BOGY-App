@@ -5,16 +5,28 @@ from api.v1.deps import get_db
 def subscribe(session_data, payload):
     with get_db() as conn:
         cursor = conn.cursor()
-        
+
+        p256dh = payload.keys.get("p256dh")
+        auth = payload.keys.get("auth")
+        if not p256dh or not auth:
+            raise HTTPException(400, "Missing push subscription keys")
+
         try:
+            # Erneutes Anmelden (z. B. nach einem Geraete-Reset) aktualisiert
+            # die bestehende Subscription, statt mit 409 abzubrechen.
             cursor.execute("""
                 INSERT INTO push_subscriptions (user_id, endpoint, p256dh, auth)
                 VALUES (?, ?, ?, ?)
+                ON CONFLICT(endpoint) DO UPDATE SET
+                    user_id = excluded.user_id,
+                    p256dh = excluded.p256dh,
+                    auth = excluded.auth,
+                    created_at = CURRENT_TIMESTAMP
             """, (
                 session_data["user_id"],
                 payload.endpoint,
-                payload.keys["p256dh"],
-                payload.keys["auth"]
+                p256dh,
+                auth
             ))
             conn.commit()
             return {"status": "subscribed", "user_id": session_data["user_id"]}
