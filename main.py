@@ -3,6 +3,7 @@ from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 import os
+import secrets
 
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
@@ -10,7 +11,7 @@ from slowapi.errors import RateLimitExceeded
 from starlette.middleware.sessions import SessionMiddleware
 
 # import deps
-from api.v1.deps import LoggedIn, get_db
+from api.v1.deps import LoggedIn, get_db, hash_password
 
 # import routers
 from api.v1.routers import administration, wlan, push, tutoring, parentnotification, user, data, admin_dashboard, pw, importing
@@ -34,9 +35,12 @@ app.add_middleware(
 )
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Später einschränken
+    # Die App wird direkt vom selben Origin ausgeliefert, Cross-Origin-Zugriffe
+    # sind daher nicht noetig. Erlaubte Origins koennen per CORS_ORIGINS
+    # (kommagetrennt) gesetzt werden.
+    allow_origins=[o.strip() for o in os.getenv("CORS_ORIGINS", "").split(",") if o.strip()],
     allow_credentials=True,
-    allow_methods=["GET", "POST", "DELETE"],
+    allow_methods=["GET", "POST", "DELETE", "PUT", "PATCH"],
     allow_headers=["Content-Type", "Authorization"],
 )
 
@@ -199,7 +203,6 @@ def init_db():
         """)
 
         # settings
-        cursor.execute("PRAGMA foreign_keys=ON")
         cursor.execute("PRAGMA journal_mode=WAL")
 
         # seed subjects
@@ -241,13 +244,46 @@ def init_db():
         for r in roles.keys():
             cursor.execute("INSERT OR IGNORE INTO roles(name, german_name) VALUES(?, ?)", (r, roles[r],))
 
-        # standard user
-        cursor.execute("INSERT OR IGNORE INTO users (username, firstname, lastname, password, role, class) VALUES ('admin', 'Max', 'Mustermann', '$argon2id$v=19$m=65536,t=3,p=4$rv8/JsLAAwnC8sC/T2cabw$bMBb9Xycyd5MMFXvEF3ni2KCcfROc/jMrIM9sGk70U8', '4', NULL)") # pw: AdminPW (change!)
+        # Standard-Admin
+        # Ein fest im Code hinterlegtes Passwort waere eine offene Hintertuer.
+        # Das Passwort kommt daher aus ADMIN_PASSWORD oder wird zufaellig
+        # erzeugt und beim Start ausgegeben.
+        admin_password = os.getenv("ADMIN_PASSWORD")
+        generated_password = None
+
+        cursor.execute("SELECT id FROM users WHERE username = 'admin'")
+        admin_exists = cursor.fetchone() is not None
+
+        if not admin_exists:
+            if not admin_password:
+                admin_password = secrets.token_urlsafe(12)
+                generated_password = admin_password
+
+            cursor.execute(
+                """INSERT INTO users (username, firstname, lastname, password, role, class)
+                   VALUES ('admin', 'Max', 'Mustermann', ?, (SELECT id FROM roles WHERE name = 'administration'), NULL)""",
+                (hash_password(admin_password),),
+            )
 
         conn.commit()
 
+        return {
+            "admin_created": not admin_exists,
+            "admin_password": generated_password,
+        }
 
-init_db()
+
+admin_info = init_db()
+
+if admin_info.get("admin_created"):
+    print("=" * 64)
+    print("Admin-Account 'admin' wurde angelegt.")
+    if admin_info.get("admin_password"):
+        print(f"Passwort: {admin_info['admin_password']}")
+        print("Bitte sofort aendern oder in der .env unter ADMIN_PASSWORD setzen.")
+    else:
+        print("Passwort: aus der Umgebungsvariable ADMIN_PASSWORD gesetzt.")
+    print("=" * 64)
 
 # ROOT
 @app.get("/")

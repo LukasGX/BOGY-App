@@ -86,23 +86,34 @@ async function main() {
 		data.forEach(async (pw) => {
 			const newEl = document.createElement("div");
 			newEl.classList.add("pw-el");
-			newEl.id = `el-${pw.name}`;
+			// Die technische ID statt des Namens verwenden - Namen duerfen
+			// beliebige Zeichen enthalten.
+			newEl.id = `el-${pw.id}`;
 			newEl.innerHTML = `
-			<span id="d-${pw.name}">${pw.name}</span>
-			<button id="view-${pw.name}" class="small">Ansehen</button>
+			<span id="d-${pw.id}">${escapeHtml(pw.name)}</span>
+			<button id="view-${pw.id}" class="small">Ansehen</button>
 			`;
 
 			passwordsEl.appendChild(newEl);
 
-			document.getElementById(`view-${pw.name}`).onclick = async () => {
+			document.getElementById(`view-${pw.id}`).onclick = async () => {
 				const key = prompt("Entschlüsselungs-Key: ");
 
 				if (!key) return; // User cancelled
 
 				try {
-					const response = await fetch(
-						`/api/v1/pw/read/${pw.name}?unlock_key=${encodeURIComponent(key)}`
-					);
+					// Der Key wird im Body uebertragen, damit er nicht in
+					// Server-Logs, Browserverlauf oder Referer landet.
+					const response = await fetch("/api/v1/pw/read", {
+						method: "POST",
+						headers: {
+							"Content-Type": "application/json"
+						},
+						body: JSON.stringify({
+							name: pw.name,
+							unlock_key: key
+						})
+					});
 					const data = await response.json();
 
 					if (response.ok) {

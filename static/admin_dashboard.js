@@ -1,3 +1,14 @@
+// Escaping fuer Werte, die in innerHTML landen (verhindert XSS).
+function escapeHtml(str) {
+	if (!str && str !== 0) return "";
+	return String(str)
+		.replace(/&/g, "&amp;")
+		.replace(/</g, "&lt;")
+		.replace(/>/g, "&gt;")
+		.replace(/"/g, "&quot;")
+		.replace(/'/g, "&#39;");
+}
+
 function openModal(content) {
 	const modal = document.createElement("div");
 	modal.className = "modal";
@@ -53,7 +64,7 @@ function showResults(fetch, response, data) {
 	<div class="status-code ${response.ok ? "positive" : "negative"}">
 		<h2><span class="indicator"></span> ${response.status} ${response.statusText}</h2>
 	</div>
-	<pre><code>${data}</code></pre>
+	<pre><code>${escapeHtml(data)}</code></pre>
 	`);
 }
 
@@ -66,13 +77,13 @@ async function clickOnClassCard(id) {
 	const data = await response.json();
 
 	openModal(`
-		<h2 data-class-id="${classId}" id="modal-h2">Klasse ${response.ok ? data.class.name : classId} - Details ${DEV_MODE ? `<span class="fetch-hint" id="fetch-hint-1"></span>` : ""}</h2>
+		<h2 data-class-id="${classId}" id="modal-h2">Klasse ${response.ok ? escapeHtml(data.class.name) : classId} - Details ${DEV_MODE ? `<span class="fetch-hint" id="fetch-hint-1"></span>` : ""}</h2>
 		${
 			response.ok
 				? `
 		${DEV_MODE ? `<p>ID: ${classId}</p>` : ""}
 		<label for="class-name-input">Klassenname:</label>
-		<input type="text" id="class-name-input" value="${data.class.name}" ${DEV_MODE ? `placeholder="class-name-input"` : ""} />
+		<input type="text" id="class-name-input" value="${escapeHtml(data.class.name)}" ${DEV_MODE ? `placeholder="class-name-input"` : ""} />
 
 		<span>Schüler:</span>
 			${
@@ -82,8 +93,8 @@ async function clickOnClassCard(id) {
 							.map(
 								(student) =>
 									`<div class="element-card mini mini-user-card">
-							<span>${student.username}</span>
-							<span>${student.firstname} ${student.lastname}</span>
+							<span>${escapeHtml(student.username)}</span>
+							<span>${escapeHtml(student.firstname)} ${escapeHtml(student.lastname)}</span>
 						</div>`
 							)
 							.join("") +
@@ -98,8 +109,8 @@ async function clickOnClassCard(id) {
 							.map(
 								(other) =>
 									`<div class="element-card mini mini-user-card">
-							<span>${other.username}</span>
-							<span>${other.firstname} ${other.lastname}</span>
+							<span>${escapeHtml(other.username)}</span>
+							<span>${escapeHtml(other.firstname)} ${escapeHtml(other.lastname)}</span>
 						</div>`
 							)
 							.join("") +
@@ -178,8 +189,8 @@ async function clickOnClassCard(id) {
 						.map(
 							(user) =>
 								`<div class="element-card mini mini-user-card">
-									<span>${user.username}</span>
-									<span>${user.firstname} ${user.lastname}</span>
+									<span>${escapeHtml(user.username)}</span>
+									<span>${escapeHtml(user.firstname)} ${escapeHtml(user.lastname)}</span>
 								</div>`
 						)
 						.join("")}
@@ -257,7 +268,7 @@ async function clickOnClassesDetailsBtn() {
 		data.classes.forEach((cls) => {
 			classes += `
 				<div class="element-card class-card" id="class-${cls.id}">
-					<span>${cls.name}</span>
+					<span>${escapeHtml(cls.name)}</span>
 					<span>Schüler: ${cls.student_count}</span>
 					<span>Andere Benutzer: ${cls.others_count}</span>
 				</div>
@@ -320,7 +331,7 @@ btnImportClasses.onclick = async () => {
 		<h2>Klassen von Untis importieren ${DEV_MODE ? `<span class="fetch-hint" id="fetch-hint-1"></span>` : ""}</h2>
 		<p>Es wurden ${data.result.length} Klassen von Untis gefunden. Möchten Sie diese importieren?</p>
 		<div class="element-card-mini-container">
-			${data.result.map((cls) => `<div class="element-card mini-class-card">${cls.name}</div>`).join("<br />")}
+			${data.result.map((cls) => `<div class="element-card mini-class-card">${escapeHtml(cls.name)}</div>`).join("<br />")}
 		</div>
 		<button id="start-import-classes-btn">Ja, Klassen importieren</button>
 		<button onclick="closeModal()">Abbrechen</button>
@@ -371,7 +382,7 @@ async function clickOnUserCard(id) {
 
 	openModal(`
 		<h2>
-			Benutzer ${data.user.username} - Details
+			Benutzer ${escapeHtml(data.user.username)} - Details
 			${DEV_MODE ? `<span class="fetch-hint" id="fetch-hint-1"></span>` : ""}
 			${DEV_MODE ? `<span class="fetch-hint" id="fetch-hint-2"></span>` : ""}
 			${DEV_MODE ? `<span class="fetch-hint" id="fetch-hint-3"></span>` : ""}
@@ -383,7 +394,7 @@ async function clickOnUserCard(id) {
 				.map(
 					(role) =>
 						`<option value="${role.id}" ${role.id == data.user.role_id ? "selected" : ""}>
-					${role.german_name}
+					${escapeHtml(role.german_name)}
 				</option>`
 				)
 				.join("")}
@@ -396,16 +407,16 @@ async function clickOnUserCard(id) {
 					`<option value="${cls.id}" ${
 						cls.id == data.user.class_id ? "selected" : ""
 					}>
-					${cls.name}
+					${escapeHtml(cls.name)}
 				</option>`
 			)}
 		</select>
 		<label for="username">Benutzername:</label>
-		<input type="text" id="username" value="${data.user.username}" ${DEV_MODE ? `placeholder="username"` : ""} />
+		<input type="text" id="username" value="${escapeHtml(data.user.username)}" ${DEV_MODE ? `placeholder="username"` : ""} />
 		<label for="firstname">Vorname:</label>
-		<input type="text" id="firstname" value="${data.user.firstname}" ${DEV_MODE ? `placeholder="firstname"` : ""} />
+		<input type="text" id="firstname" value="${escapeHtml(data.user.firstname)}" ${DEV_MODE ? `placeholder="firstname"` : ""} />
 		<label for="lastname">Nachname:</label>
-		<input type="text" id="lastname" value="${data.user.lastname}" ${DEV_MODE ? `placeholder="lastname"` : ""} /><br /><br />
+		<input type="text" id="lastname" value="${escapeHtml(data.user.lastname)}" ${DEV_MODE ? `placeholder="lastname"` : ""} /><br /><br />
 		<button id="save-user-btn">Änderungen speichern</button>
 		<button id="reset-password-btn">Passwort zurücksetzen</button>
 		<button id="delete-user-btn" class="destructive">Benutzer löschen</button>
@@ -568,7 +579,7 @@ async function addUser() {
 				.map(
 					(role) =>
 						`<option value="${role.id}">
-					${role.german_name}
+					${escapeHtml(role.german_name)}
 				</option>`
 				)
 				.join("")}
@@ -579,7 +590,7 @@ async function addUser() {
 			${classesData.classes.map(
 				(cls) =>
 					`<option value="${cls.id}">
-					${cls.name}
+					${escapeHtml(cls.name)}
 				</option>`
 			)}
 		</select>
@@ -686,9 +697,9 @@ async function clickOnUsersDetailsBtn() {
 		data.users.forEach((user) => {
 			users += `
 				<div class="element-card user-card" id="user-${user.id}">
-					<span>${user.username}</span>
-					<span>Rolle: ${user.german_role_name}</span>
-					<span>Klasse: ${user.class_name ? user.class_name : "Keine Klasse"}</span>
+					<span>${escapeHtml(user.username)}</span>
+					<span>Rolle: ${escapeHtml(user.german_role_name)}</span>
+					<span>Klasse: ${escapeHtml(user.class_name ? user.class_name : "Keine Klasse")}</span>
 				</div>
 			`;
 			ids.push(`user-${user.id}`);
@@ -785,8 +796,8 @@ btnImportUsers.onclick = async () => {
 		<h2>Benutzer von Untis importieren ${DEV_MODE ? `<span class="fetch-hint" id="fetch-hint-1"></span>` : ""}</h2>
 		<p>Es wurden ${data.teachers.result.length + data.students.result.length} Benutzer von Untis gefunden. Möchten Sie diese importieren?</p>
 		<div class="element-card-mini-container">
-			${data.teachers.result.map((user) => `<div class="element-card mmini-user-card">${user.foreName} ${user.longName}</div>`).join("<br />")}
-			${data.students.result.map((user) => `<div class="element-card mmini-user-card">${user.foreName} ${user.longName}</div>`).join("<br />")}
+			${data.teachers.result.map((user) => `<div class="element-card mmini-user-card">${escapeHtml(user.foreName)} ${escapeHtml(user.longName)}</div>`).join("<br />")}
+			${data.students.result.map((user) => `<div class="element-card mmini-user-card">${escapeHtml(user.foreName)} ${escapeHtml(user.longName)}</div>`).join("<br />")}
 		</div>
 		<button id="start-import-users-btn">Ja, Benutzer importieren</button>
 		<button onclick="closeModal()">Abbrechen</button>
@@ -852,9 +863,9 @@ async function clickOnWlanCodeCard(id) {
 	const dataUsers = await responseUsers.json();
 
 	openModal(`
-		<h2>WLAN-Code ${data.code.code} - Details ${DEV_MODE ? `<span class="fetch-hint" id="fetch-hint-1"></span>` : ""} ${DEV_MODE ? `<span class="fetch-hint" id="fetch-hint-2"></span>` : ""}</h2>
+		<h2>WLAN-Code ${escapeHtml(data.code.code)} - Details ${DEV_MODE ? `<span class="fetch-hint" id="fetch-hint-1"></span>` : ""} ${DEV_MODE ? `<span class="fetch-hint" id="fetch-hint-2"></span>` : ""}</h2>
 		${DEV_MODE ? `<p>ID: ${data.code.id}</p>` : ""}
-		<p>Code: ${data.code.code}</p>
+		<p>Code: ${escapeHtml(data.code.code)}</p>
 		<label for="expiry">Ablaufdatum:</label>
 		<input type="datetime-local" id="expiry" ${DEV_MODE ? `placeholder="expiry"` : ""} value="${expiryDate
 			.toISOString()
@@ -865,7 +876,7 @@ async function clickOnWlanCodeCard(id) {
 				.map(
 					(user) =>
 						`<option value="${user.id}">
-					${user.username} (${user.firstname} ${user.lastname})
+					${escapeHtml(user.username)} (${escapeHtml(user.firstname)} ${escapeHtml(user.lastname)})
 				</option>`
 				)
 				.join("")}
@@ -1002,7 +1013,7 @@ async function addWlanCode() {
 				.map(
 					(user) =>
 						`<option value="${user.id}">
-					${user.username} (${user.firstname} ${user.lastname})
+					${escapeHtml(user.username)} (${escapeHtml(user.firstname)} ${escapeHtml(user.lastname)})
 				</option>`
 				)
 				.join("")}
@@ -1092,8 +1103,8 @@ async function clickOnWlanCodesDetailsBtn() {
 
 		codes += `
 			<div class="element-card wlan-code-card" id="wlancode-${code.id}">
-				<span>${code.code}</span>
-				<span>Gültig bis: ${expiry}</span>
+				<span>${escapeHtml(code.code)}</span>
+				<span>Gültig bis: ${escapeHtml(expiry)}</span>
 			</div>
 		`;
 	});
@@ -1149,8 +1160,8 @@ async function clickOnTutoringDetailsBtn() {
 	data.results.forEach((offer) => {
 		offers += `
 			<div class="element-card tutor-card">
-				<span>${offer.username}</span>
-				<span>Fächer: ${offer.subjects.map((subject) => subject.german_name).join(", ")}</span>
+				<span>${escapeHtml(offer.username)}</span>
+				<span>Fächer: ${offer.subjects.map((subject) => escapeHtml(subject.german_name)).join(", ")}</span>
 			</div>
 		`;
 	});
@@ -1264,14 +1275,14 @@ async function viewFeedback(id) {
 				if (choiceMaps[key] && choiceMaps[key][value]) {
 					displayValue = choiceMaps[key][value];
 				}
-				return `${feedbackLabels[key] || key}: ${displayValue}`;
+				return `${escapeHtml(feedbackLabels[key] || key)}: ${escapeHtml(displayValue)}`;
 			})
 			.join("\n");
 
 		tableRows += `
 			<tr>
-				<td>${item.username}</td>
-				<td>${item.firstname} ${item.lastname}</td>
+				<td>${escapeHtml(item.username)}</td>
+				<td>${escapeHtml(item.firstname)} ${escapeHtml(item.lastname)}</td>
 				<td><pre>${feedbackStr}</pre></td>
 			</tr>
 		`;
@@ -1347,8 +1358,8 @@ async function clickOnParentNotificationCard(id) {
 					if (!userResponse.ok) throw new Error();
 					const userData = await userResponse.json();
 					return [
-						userData.user.username,
-						`${userData.user.firstname} ${userData.user.lastname}`
+						escapeHtml(userData.user.username),
+						`${escapeHtml(userData.user.firstname)} ${escapeHtml(userData.user.lastname)}`
 					];
 				} catch (error) {
 					return `ID ${userId}`;
@@ -1370,10 +1381,10 @@ async function clickOnParentNotificationCard(id) {
 		<h2>Elternbrief - Details ${DEV_MODE ? `<span class="fetch-hint" id="fetch-hint-1"></span>` : ""}</h2>
 		${DEV_MODE ? `<p>ID: ${notification.id}</p>` : ""}
 		<p>
-			Titel: ${notification.title}
+			Titel: ${escapeHtml(notification.title)}
 		</p>
 		<p>
-			Text: ${notification.body}
+			Text: ${escapeHtml(notification.body)}
 		</p>
 		<span>Empfänger:</span>
 		<div class="element-card-mini-container">${recipientsHtml}</div>
@@ -1399,7 +1410,7 @@ async function clickOnParentNotificationCard(id) {
 							(item) => `
 							<div style="display: flex;">
 								<div class="feedback-preview feedback-preview-l">
-									<span>${item.label}</span>
+									<span>${escapeHtml(item.label)}</span>
 								</div>
 								<div class="feedback-preview feedback-preview-r">
 									<span class="mini-info">${item.type}</span>
@@ -1450,7 +1461,7 @@ async function addParentNotification() {
 			.map(
 				(user) =>
 					`<option value="${user.id}">
-						${user.username} (${user.firstname} ${user.lastname})
+						${escapeHtml(user.username)} (${escapeHtml(user.firstname)} ${escapeHtml(user.lastname)})
 					</option>`
 			)
 			.join("")}
@@ -1694,7 +1705,7 @@ async function clickOnParentNotificationDetailsBtn() {
 
 		notificationsHtml += `
 			<div class="element-card pn-card" id="pn-${notification.id}">
-				<span>${notification.title}</span>
+				<span>${escapeHtml(notification.title)}</span>
 				<span>${attachmentCount} ${attachmentsLabel}</span>
 				<span class="mono">${formattedDate}</span>
 			</div>
@@ -1763,7 +1774,7 @@ async function sendPush() {
 						.map(
 							(user) =>
 								`<option value="${user.id}">
-							${user.username} (${user.firstname} ${user.lastname})
+							${escapeHtml(user.username)} (${escapeHtml(user.firstname)} ${escapeHtml(user.lastname)})
 						</option>`
 						)
 						.join("")}
@@ -1989,10 +2000,10 @@ async function universalSearch() {
 				(item) => `
 					<div class="element-card ${item.type}-card search-result-card" id="${item.id}">
 						<div class="search-result-main">
-							<strong>${item.title}</strong>
+							<strong>${escapeHtml(item.title)}</strong>
 							<small>${getTypeLabel(item.type)}</small>
 						</div>
-						<div class="search-result-subtitle">${item.subtitle}</div>
+						<div class="search-result-subtitle">${escapeHtml(item.subtitle)}</div>
 					</div>
 				`
 			)
@@ -2015,8 +2026,8 @@ async function universalSearch() {
 	function openTutoringCard(item) {
 		closeModal();
 		openModal(`
-			<h2>Nachhilfe - ${item.title}</h2>
-			<p>${item.subtitle}</p>
+			<h2>Nachhilfe - ${escapeHtml(item.title)}</h2>
+			<p>${escapeHtml(item.subtitle)}</p>
 			<button onclick="closeModal()">OK</button>
 		`);
 	}

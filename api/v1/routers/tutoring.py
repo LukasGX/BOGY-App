@@ -13,12 +13,13 @@ async def register_tutoring(request: Request, session_data: dict = Depends(Logge
 async def edit_tutor_profile(request: Request, session_data: dict = Depends(LoggedIn)):
     return edit_profile(request, session_data)
 
+# Tutor-Listen enthalten personenbezogene Daten und sind nur angemeldeten Nutzern zugänglich.
 @router.get("/search-tutors")
 @sl_limiter.limit("5/minute")
-async def search_tutors(request: Request):
+async def search_tutors(request: Request, session_data: dict = Depends(LoggedIn)):
     return search_tutors_s(request)
 
 @router.get("/all-tutors")
 @sl_limiter.limit("1/second")
-async def all_tutors(request: Request):
+async def all_tutors(request: Request, session_data: dict = Depends(LoggedIn)):
     return all_tutors_s()

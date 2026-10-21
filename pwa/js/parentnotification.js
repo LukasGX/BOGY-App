@@ -33,13 +33,13 @@ async function main() {
 		let output = "";
 		if (f.type == "freetext") {
 			output += `
-            <input type="text" name="input-${f.id}">
+            <input type="text" name="input-${escapeHtml(f.id)}">
             `;
 		} else if (f.type == "single-choice") {
 			f.choices.forEach((choice) => {
 				const id = getUniqueId();
 				output += `
-                <input type="radio" value="${choice.val}" name="input-${f.id}" id="${id}"> <label for="${id}">${choice.label}</label>
+                <input type="radio" value="${escapeHtml(choice.val)}" name="input-${escapeHtml(f.id)}" id="${id}"> <label for="${id}">${escapeHtml(choice.label)}</label>
                 `;
 			});
 		}
@@ -63,8 +63,8 @@ async function main() {
                     ${att
 						.map(
 							(a) => `
-                            <a href="/files/${a}" target="_blank">
-                                <button class="small">${a}</button>
+                            <a href="/files/${encodeURIComponent(a)}" target="_blank">
+                                <button class="small">${escapeHtml(a)}</button>
                             </a>`
 						)
 						.join("")}
@@ -82,7 +82,7 @@ async function main() {
 						.map(
 							(f) => `
                             <div class="feedback-el">
-                                <span>${f.label}</span>
+                                <span>${escapeHtml(f.label)}</span>
                                 ${buildFeedback(f)}
                             </div>
                             `
@@ -104,12 +104,12 @@ async function main() {
 		});
 		notificationEl.innerHTML = `
             <div>
-                <span class="title">${notification.title}</span>
-                <span class="body">${notification.body}</span>
+                <span class="title">${escapeHtml(notification.title)}</span>
+                <span class="body">${escapeHtml(notification.body)}</span>
             </div>
             ${attachmentsEl}
             ${feedbackEl}
-            <span class="mini-info">erstellt am ${dtString}</span>
+            <span class="mini-info">erstellt am ${escapeHtml(dtString)}</span>
         `;
 		notificationsEl.appendChild(notificationEl);
 	});

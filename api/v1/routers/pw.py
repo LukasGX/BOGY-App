@@ -11,6 +11,10 @@ class SecretCreate(BaseModel):
     value: str
     unlock_key: str
 
+class SecretRead(BaseModel):
+    name: str
+    unlock_key: str
+
 class SecretUpdate(BaseModel):
     value: str
     unlock_key: str
@@ -24,6 +28,14 @@ class ChangeUnlockKey(BaseModel):
 async def create_secret(request: Request, secret: SecretCreate, session_data: dict = Depends(LoggedIn)):
     user_id = session_data["user_id"]
     return create_secret_s(user_id, secret.name, secret.value, secret.unlock_key)
+
+# Der Unlock-Key wird im Body uebertragen, damit er nicht in Access-Logs,
+# Browserverlauf oder Referer-Headern landet.
+@router.post("/read")
+@sl_limiter.limit("100/minute")
+async def read_secret_post(request: Request, secret: SecretRead, session_data: dict = Depends(LoggedIn)):
+    user_id = session_data["user_id"]
+    return get_secret_s(user_id, secret.name, secret.unlock_key)
 
 @router.get("/read/{name}")
 @sl_limiter.limit("100/minute")

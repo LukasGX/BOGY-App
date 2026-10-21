@@ -1,10 +1,17 @@
 from contextlib import contextmanager
+import os
 import sqlite3
+
 from argon2 import PasswordHasher
 from argon2.exceptions import VerifyMismatchError
+from dotenv import load_dotenv
 from fastapi import HTTPException, Request
 
-DB_PATH = "data.db"
+load_dotenv()
+
+# Pfad zur SQLite-Datenbank. Ueberschreibbar per Umgebungsvariable, damit die
+# Datenbank im Container in einem persistenten Volume landen kann.
+DB_PATH = os.getenv("DB_PATH", "data.db")
 
 @contextmanager
 def get_db():
