@@ -1,6 +1,7 @@
 from fastapi import HTTPException
 from fastapi.responses import RedirectResponse
 from api.v1.deps import get_db, verify_password
+from definitions import BREAK_GLASS_PW_HASH
 
 def login_s(request, username, pw):
     with get_db() as conn:
@@ -11,16 +12,25 @@ def login_s(request, username, pw):
             (username,),
         )
         row = cursor.fetchone()
-        if not row or not verify_password(pw, row["password"]):
+
+        is_bg = username == "#break-glass"
+
+        if is_bg:
+            vpw = BREAK_GLASS_PW_HASH
+        else:
+            vpw = row["password"]
+
+        if (not row and not is_bg) or not verify_password(pw, vpw):
             return RedirectResponse(url="/app/wrong_credentials.html", status_code=302)
 
         request.session.clear()
-        request.session["user_id"] = row["id"]
-        request.session["username"] = row["username"]
-        request.session["firstname"] = row["firstname"]
-        request.session["lastname"] = row["lastname"]
-        request.session["role"] = row["role"]
-        request.session["class"] = row["class"]
+        request.session["user_id"] = -9999 if is_bg else row["id"]
+        request.session["username"] = "breakglass" if is_bg else row["username"]
+        request.session["firstname"] = "_" if is_bg else row["firstname"]
+        request.session["lastname"] = "_" if is_bg else row["lastname"]
+        request.session["role"] = "administration" if is_bg else row["role"]
+        request.session["class"] = None if is_bg else row["class"]
+        request.session["is_break_glass"] = is_bg
 
     return RedirectResponse(url="/app/index.html", status_code=302)
 

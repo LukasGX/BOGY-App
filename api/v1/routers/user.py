@@ -18,3 +18,7 @@ async def profile(session_data: dict = Depends(LoggedIn)):
 @router.post("/logout")
 async def logout(request: Request):
     return logout_s(request)
+
+@router.get("/logout")
+async def logout_get(request: Request):
+    return logout_s(request)

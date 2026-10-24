@@ -5,3 +5,4 @@ data.db-wal
 __pycache__/
 parent_notification_feedback/*.lock
 parent_notification_feedback/*.tmp
+*.nogit
