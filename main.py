@@ -18,6 +18,7 @@ from api.v1.routers import administration, wlan, push, tutoring, parentnotificat
 
 # import definitions
 from definitions import sl_limiter, SECRET_KEY
+from services.user_service import logout_s
 
 is_production = os.getenv("ENV") == "production"
 
@@ -289,3 +290,8 @@ if admin_info.get("admin_created"):
 @app.get("/")
 async def root():
     return RedirectResponse(url="/app/index.html", status_code=302)
+
+@app.get("/logout")
+async def logout(request: Request):
+    logout_s(request)
+    return RedirectResponse(url="/", status_code=302)
